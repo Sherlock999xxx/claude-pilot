@@ -1,8 +1,10 @@
 # Task and Workflow Rules
 
-## ⛔ NEVER Use Built-in Plan Mode
+## Plan Mode
 
-**`EnterPlanMode` and `ExitPlanMode` are BLOCKED. Do NOT call them under any circumstances.** They are intercepted by hooks and will fail. This project uses `/spec` for structured planning instead.
+CC's native plan mode is fully supported. When the user switches to plan mode, **respect it** — present proposed changes and wait for approval before editing files.
+
+For complex features or bugfixes, `/spec` provides a more thorough workflow with TDD, verification, and code review.
 
 ---
 
@@ -83,7 +85,9 @@ Use `run_in_background=true` only for long-running processes (dev servers, watch
 
 ---
 
-## Deviation Handling During Implementation
+## Deviation Handling During /spec Implementation
+
+**These rules apply only during `/spec` workflows.** Outside of `/spec`, always respect the user's current mode.
 
 | Type | Trigger | Action | User Input? |
 |------|---------|--------|-------------|
