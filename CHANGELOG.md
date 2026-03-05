@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.1.4] - 2026-03-05
+
+### Bug Fixes
+
+- Clean stale session state on /clear and prevent reviewer skip at high context
+
 ## [7.1.3] - 2026-03-02
 
 ### Bug Fixes
