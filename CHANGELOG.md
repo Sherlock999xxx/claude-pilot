@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.3.2] - 2026-03-08
+
+### Bug Fixes
+
+- Improved /sync Command
+
 ## [7.3.1] - 2026-03-08
 
 ### Bug Fixes
