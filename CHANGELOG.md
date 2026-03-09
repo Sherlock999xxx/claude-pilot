@@ -2,6 +2,13 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.4.1] - 2026-03-09
+
+### Bug Fixes
+
+- Improve /sync with quality audit phase, consistent structure, and optional dependencies
+- Auto-Install Native Claude Code if not already installed on system
+
 ## [7.4.0] - 2026-03-08
 
 ### Features
