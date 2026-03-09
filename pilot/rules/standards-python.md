@@ -28,7 +28,7 @@ uv run pytest -q --cov=src --cov-fail-under=80     # Coverage
 
 ruff format .                                       # Format
 ruff check . --fix                                  # Lint
-basedpyright src                                    # Type check
+basedpyright src                                    # Type check (adapt to your source dirs)
 ```
 
 ### Code Style
@@ -55,7 +55,7 @@ basedpyright src                                    # Type check
 - [ ] `uv run pytest` — tests pass
 - [ ] `ruff format .` — formatted
 - [ ] `ruff check .` — clean
-- [ ] `basedpyright src` — clean
+- [ ] `basedpyright src` — clean (adapt to your source dirs)
 - [ ] Coverage ≥ 80%
 - [ ] No unused imports
 - [ ] Production files ideally under 800 lines (1000+ = consider splitting)

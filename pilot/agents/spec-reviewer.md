@@ -120,6 +120,21 @@ Apply all rules read in Step 1. Focus on real issues, not style preferences.
 - Silently swallowed errors with no fallback or notification → **should_fix**
 - External calls without timeout handling → **should_fix**
 
+#### Complexity Anti-Patterns (should_fix)
+
+Scan changed files for patterns that add complexity instead of solving the problem:
+
+| Pattern | Looks Like | Severity |
+|---------|-----------|---------|
+| Wrapper cascade | Function wraps a broken function with extra handling instead of fixing it | should_fix |
+| Config toggle | Flag switching between old and new behavior (`if USE_NEW_PATH:`) | should_fix |
+| Defensive copy-paste | Function duplicated with minor modification "to be safe" | should_fix |
+| Exception swallowing | `except: pass` or `except Exception: pass` with no logging | should_fix |
+| Type escape | `as any`, `# type: ignore`, `@ts-ignore`, `@SuppressWarnings` | should_fix |
+| Adapter layer | New class/module created purely to translate between two things you control | should_fix |
+
+These patterns compound over time. Flag them so the implementer can simplify before the complexity accumulates.
+
 ### Step 5: Phase C — Goal Achievement
 
 **Is the overall goal actually achieved?**
@@ -199,6 +214,16 @@ For each truth: **verified** = artifacts exist, substantive, wired, no critical 
 
 **Overall goal_score**: `achieved` = all truths verified; `partial` = some verified; `not_achieved` = majority failed.
 
+#### C7: Prediction Accuracy
+
+Compare the plan's predictions against actuals from `git diff --stat`:
+
+```bash
+git diff --stat HEAD~1  # or appropriate base commit
+```
+
+Count: tasks predicted (from plan Progress Tracking), tasks actual (from `[x]` checkboxes), files predicted (from plan task Files sections), files changed actual (from git diff). If plan contains no numeric predictions, set `prediction_accuracy` to `null`. Record in output JSON for future calibration.
+
 ### Step 6: Compose and Persist Output
 
 Merge all findings from Phases A, B, and C. Deduplicate overlapping issues. Write to output_path.
@@ -224,6 +249,14 @@ Output ONLY valid JSON (no markdown wrapper, no explanation outside JSON):
   "goal_score": "achieved | partial | not_achieved",
   "truths_verified": 5,
   "truths_total": 7,
+  "prediction_accuracy": {
+    "tasks_predicted": 6,
+    "tasks_actual": 7,
+    "files_predicted": 4,
+    "files_changed_actual": 5,
+    "notes": "One extra task added during implementation for edge case handling"
+  },
+  // When plan contains no numeric predictions: "prediction_accuracy": null
   "issues": [
     {
       "severity": "must_fix | should_fix | suggestion",

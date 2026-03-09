@@ -214,6 +214,16 @@ For EACH task, verify its Definition of Done criteria against the running progra
 
 If any criterion unmet: fix inline if possible, or add task and loop back.
 
+### Step 3.8b: Not Verified Acknowledgment
+
+List what was **NOT** verified and why. Include in the verification report (Step 3.13). Every gap must have a reason:
+
+| Not Verified | Reason |
+|-------------|--------|
+| [criterion or scenario] | No test environment / Out of scope / Untestable statically / Deferred |
+
+"None — all criteria have automated verification" is a valid answer if true. Do not omit this section: absence of acknowledged gaps ≠ absence of real gaps.
+
 ### Step 3.9: E2E Verification (Full profile only)
 
 **If runtime profile is not Full:** Skip.
@@ -311,7 +321,14 @@ If any fails: fix on base branch, re-run, commit fix separately (e.g., `fix: res
 
 1. Set `Status: VERIFIED` in plan
 2. Register: `~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" 2>/dev/null || true`
-3. Report completion with summary
+3. Report completion with summary:
+   ```
+   ## Verification Complete
+   **Issues Found:** X
+   ### Goal Achievement: N/M truths verified
+   ### Must Fix (N) | Should Fix (N) | Suggestions (N)
+   ### Not Verified: [list items from Step 3.8b, or "None"]
+   ```
 
 **When verification FAILS (missing features, serious bugs):**
 

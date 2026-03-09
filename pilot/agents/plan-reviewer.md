@@ -37,6 +37,7 @@ Compare plan against user request and clarifications:
 5. **DoD Quality** — Are Definition of Done criteria measurable and verifiable? ("tests pass" is not verifiable; "API returns 404 for nonexistent resources" is)
 6. **Risk Quality** — Are risk mitigations concrete implementable behaviors? ("handle edge cases" is not acceptable; "reset to null when selected project not in list" is)
 7. **Runtime Environment** — If project has a running service/API/UI, does the plan document how to start, test, and verify it?
+8. **Problem Statement Quality** — Does the plan state invariants (what must always be true) and edge cases, not just what to build? A plan that only says "add X feature" without stating behavioral expectations and invariants leaves implementers guessing at correctness boundaries.
 
 ### Step 3: Adversarial Challenge
 
@@ -48,6 +49,7 @@ Verify assumptions against actual code using Grep/Glob/Read. Challenge every ass
 4. **Question optimism** — Where is the plan overly optimistic about complexity or feasibility?
 5. **Identify architectural weaknesses** — What design decisions create risk? What alternatives were ignored?
 6. **Test scope boundaries** — What happens at the edges? What's excluded that should be included?
+7. **Ghost constraint check** *(suggestion level)* — Are any constraints in the plan inherited from assumptions or prior patterns rather than the current stated requirements? Look for: constraints nobody can attribute to a specific requirement, scope restrictions that appear copied from similar prior work without re-validation, or scope limitations that may reflect a historical context that no longer applies. Flag as `suggestion` — these are speculative on initial plans.
 
 ### Step 4: Compose Output
 
@@ -90,6 +92,7 @@ For EVERY plan, ask:
 - [ ] What happens at the boundaries of "in scope" vs "out of scope"?
 - [ ] What failure modes from similar features in the codebase could apply here?
 - [ ] What concurrent access or race condition scenarios exist?
+- [ ] Are any constraints ghost constraints — inherited from prior context, not from current requirements?
 
 ## Alignment Checklist
 
@@ -104,6 +107,7 @@ For EVERY plan, verify:
 - [ ] Each DoD criterion is verifiable against code or runtime behavior
 - [ ] Runtime Environment section exists if the project has a running service
 - [ ] Architecture aligns with any stated user preferences
+- [ ] Plan states invariants (what must always be true) and edge cases, not just what to build
 
 ## Output Persistence
 

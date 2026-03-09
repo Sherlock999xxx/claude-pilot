@@ -25,6 +25,8 @@ Unit tests with mocks prove nothing about real-world behavior. After tests pass:
 
 ### Evidence Before Claims
 
+**Before proceeding:** Ask "Do these tests verify what matters, or only what was easy to test?" If important edge cases go untested, acknowledge the gap explicitly — don't claim full coverage when you only have partial coverage.
+
 1. **Identify** — What command proves this claim?
 2. **Execute** — Run the full command (not cached)
 3. **Read output** — Check exit code, count failures

@@ -37,6 +37,12 @@ probe search "database connection setup" ./
 
 **Red Flags → STOP:** "Quick fix for now", multiple changes at once, proposing fixes before tracing data flow, 2+ failed fixes.
 
+**Revert-First:** When something breaks during implementation, default response = simplify, not add more code.
+1. **Revert** — undo the change that broke it. Clean state.
+2. **Delete** — can the broken thing be removed entirely?
+3. **One-liner** — minimal targeted fix only.
+4. **None of the above** → stop, reconsider the approach. 3+ failed fixes = the approach is wrong, not the fix.
+
 **Meta-Debugging:** Treat your own code as foreign. Your mental model is a guess — the code's behavior is truth.
 
 #### Defense-in-Depth & Root-Cause Tracing
@@ -75,6 +81,16 @@ result = await wait_for(lambda: get_result() is not None, timeout=5.0)
 **When NOT to use:** Testing actual timing behavior (debounce, throttle) — document WHY the timeout is needed.
 
 **Rules:** Poll every 10ms (not 1ms — wastes CPU). Always include timeout with clear error message. Call getter inside loop for fresh data (no stale cache).
+
+### Constraint Classification
+
+When exploring a problem or codebase, classify constraints you encounter:
+
+- **Hard** — non-negotiable (physical limits, external contracts, security requirements, deadlines)
+- **Soft** — preferences or conventions — negotiable if trade-off is stated explicitly
+- **Ghost** — past constraints baked into the current approach that **no longer apply**
+
+Ghost constraints are the most valuable to find: they lock out options nobody thinks are available. Ask "why can't we do X?" — if nobody can point to a current requirement, it may be a ghost.
 
 ### Git Operations
 
