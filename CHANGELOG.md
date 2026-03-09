@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.4.5] - 2026-03-09
+
+### Bug Fixes
+
+- Added settings toggle for subagents and improve their token usage
+
 ## [7.4.4] - 2026-03-09
 
 ### Bug Fixes
