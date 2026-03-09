@@ -69,10 +69,10 @@ def is_semantic_pattern(pattern: str) -> bool:
     return any(phrase in pattern_lower for phrase in SEMANTIC_PHRASES)
 
 
-EXPLORE_HINT = {
-    "message": "Consider using Probe CLI instead (better semantic ranking, instant results)",
-    "alternative": "Probe CLI `probe search` for semantic codebase search, or Grep/Glob for exact patterns",
-    "example": 'Bash: probe search "where is config loaded" ./ --max-results 5 --max-tokens 2000',
+EXPLORE_BLOCK = {
+    "message": "Explore agent is blocked — use Probe CLI first (instant, semantic, <0.3s)",
+    "alternative": "Run multiple `probe search` calls via Bash. Only use Explore after Probe AND Grep/Glob both fail.",
+    "example": 'Bash: probe search "model config for sync command" ./ --max-results 5 --max-tokens 2000',
 }
 
 HINTS: dict[str, dict] = {
@@ -91,7 +91,6 @@ HINTS: dict[str, dict] = {
         "condition": lambda data: (
             data.get("tool_input", {}).get("subagent_type", "")
             not in (
-                "Explore",
                 "pilot:plan-reviewer",
                 "pilot:spec-reviewer",
                 "claude-code-guide",
@@ -159,7 +158,7 @@ def run_tool_redirect() -> int:
     tool_input = hook_data.get("tool_input", {}) if isinstance(hook_data.get("tool_input"), dict) else {}
 
     if tool_name == "Task" and tool_input.get("subagent_type") == "Explore":
-        return hint(EXPLORE_HINT)
+        return block(EXPLORE_BLOCK)
 
     if tool_name in BLOCKS:
         redirect = BLOCKS[tool_name]

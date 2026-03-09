@@ -1,6 +1,6 @@
 ---
 description: Use after significant debugging, workarounds, or multi-step workflows worth standardizing for future sessions
-model: sonnet
+model: opus
 ---
 
 # /learn - Online Learning System

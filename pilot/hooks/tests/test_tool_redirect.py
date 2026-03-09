@@ -122,9 +122,10 @@ class TestHintedTools:
         result = _run_with_input("Grep", {"pattern": "def save_config"})
         assert result == 0
 
-    def test_hints_task_explore(self):
+    def test_blocks_task_explore(self):
+        """Explore agent is blocked — use Probe CLI instead."""
         result = _run_with_input("Task", {"subagent_type": "Explore"})
-        assert result == 0
+        assert result == 2
 
     def test_hints_task_generic_subagent(self):
         """Non-allowed subagent types get a hint."""

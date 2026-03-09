@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-CURRENT_CONFIG_VERSION = 1
+CURRENT_CONFIG_VERSION = 2
 
 # Old agent names removed in v7.1 (merged into plan-reviewer + spec-reviewer)
 _STALE_AGENT_KEYS = frozenset(
@@ -54,6 +54,9 @@ def migrate_model_config(config_path: Path | None = None) -> bool:
     if version < 1:
         modified = _migration_v1(raw) or modified
 
+    if version < 2:
+        modified = _migration_v2(raw) or modified
+
     raw["_configVersion"] = CURRENT_CONFIG_VERSION
     modified = True
 
@@ -90,6 +93,25 @@ def _migration_v1(raw: dict[str, Any]) -> bool:
             modified = True
         if "spec-reviewer" not in agents:
             agents["spec-reviewer"] = "sonnet"
+            modified = True
+
+    return modified
+
+
+def _migration_v2(raw: dict[str, Any]) -> bool:
+    """v1 → v2: Switch sync and learn commands from sonnet to opus.
+
+    Both build rules/skills and only run periodically — best model, not a cost driver.
+    """
+    modified = False
+
+    commands = raw.get("commands")
+    if isinstance(commands, dict):
+        if commands.get("sync") == "sonnet":
+            commands["sync"] = "opus"
+            modified = True
+        if commands.get("learn") == "sonnet":
+            commands["learn"] = "opus"
             modified = True
 
     return modified

@@ -24,6 +24,10 @@ Full Probe reference in `cli-tools.md`. Full MCP tool reference in `mcp-servers.
 | GitHub operations | `gh` CLI | Authenticated, `--json` + `--jq` |
 | Past work / decisions | mem-search (MCP) | `search` → `timeline` → `get_observations` |
 
+### ⛔ Explore Agent
+
+**NEVER use Agent(subagent_type="Explore") as a first choice — blocked by hook.** Explore spawns a sub-agent that duplicates what Probe does instantly. Run multiple `probe search` calls instead. Only consider Explore after Probe AND Grep/Glob both fail AND you need multi-step reasoning across many files.
+
 ### ⛔ Web Search/Fetch
 
 **NEVER use built-in `WebFetch` or `WebSearch` — blocked by hook.** Use MCP alternatives via `ToolSearch`:

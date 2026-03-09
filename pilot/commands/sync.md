@@ -1,7 +1,7 @@
 ---
 description: Sync project rules and skills with codebase - reads existing rules/skills, explores code, updates documentation, creates new skills
 user-invocable: true
-model: sonnet
+model: opus
 ---
 # /sync - Sync Project Rules & Skills
 

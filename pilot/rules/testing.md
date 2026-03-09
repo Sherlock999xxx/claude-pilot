@@ -96,11 +96,15 @@ Use `playwright-cli` with session isolation (`-s="${PILOT_SESSION_ID:-default}"`
 - **Test-only methods in production** — never add methods, properties, or flags to production classes purely for test access. If you need internal state for testing, refactor the design so the behavior is observable through public interfaces.
 - **Mocking without understanding** — before mocking a dependency, understand what it actually does. A mock that doesn't reflect real behavior is a lie — tests pass against the lie, then fail against reality.
 
+### ⛔ Zero Tolerance for Failing Tests
+
+**Every test failure MUST be fixed before work is done.** Run the FULL suite, not just files you touched. "Pre-existing failure" is not an excuse — if you see it, you fix it. A green suite is a prerequisite, not a nice-to-have.
+
 ### Completion Checklist
 
 - [ ] All new functions have tests
 - [ ] Tests follow naming convention
 - [ ] Unit tests mock external dependencies
-- [ ] All tests pass
+- [ ] **Full test suite passes (0 failures)** — not just your files
 - [ ] Coverage ≥ 80% verified
 - [ ] Actual program executed and verified
