@@ -1,4 +1,4 @@
 """Pilot Shell - Protected source module with license verification."""
 
-__version__ = "7.4.5"
+__version__ = "7.4.6"
 __build__ = "dev"

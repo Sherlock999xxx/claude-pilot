@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.4.6] - 2026-03-10
+
+### Bug Fixes
+
+- Add spec workflow toggles, console settings UI, dark theme, and site redesign
+
 ## [7.4.5] - 2026-03-09
 
 ### Bug Fixes
