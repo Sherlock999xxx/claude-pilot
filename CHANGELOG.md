@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.5.0] - 2026-03-12
+
+### Features
+
+- Replace Teams with Skillshare-based Share system, streamline spec workflow and hooks 
+
 ## [7.4.7] - 2026-03-10
 
 ### Bug Fixes
