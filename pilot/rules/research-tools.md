@@ -24,9 +24,11 @@ Full Probe reference in `cli-tools.md`. Full MCP tool reference in `mcp-servers.
 | GitHub operations | `gh` CLI | Authenticated, `--json` + `--jq` |
 | Past work / decisions | mem-search (MCP) | `search` → `timeline` → `get_observations` |
 
-### ⛔ Agent Tool — BANNED
+### Agent Tool — Prefer Direct Tools
 
-**NEVER use the Agent tool — ALL sub-agent calls are blocked by hook and will be denied.** Sub-agents waste tokens duplicating work that can be done directly with Probe, Grep/Glob, and Bash. Do the work yourself instead of delegating.
+**Prefer doing work directly** with Probe, Grep/Glob, and Bash instead of launching sub-agents. Sub-agents waste tokens duplicating work you can do yourself. The hook will warn (not block) on general Agent calls.
+
+**`/spec` reviewer agents** (`pilot:plan-reviewer`, `pilot:spec-reviewer`) pass through silently — these are expected parts of the workflow.
 
 ### ⛔ Web Search/Fetch
 

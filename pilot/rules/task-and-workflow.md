@@ -62,9 +62,11 @@ When resuming same session (same `CLAUDE_CODE_TASK_LIST_ID`): run `TaskList` fir
 
 ## Tool Usage
 
-### ⛔ Agent Tool — BANNED
+### Agent Tool — Prefer Direct Tools
 
-**NEVER use the Agent tool.** All sub-agent calls are blocked by hook and will be denied. Do the work directly using Probe CLI, Grep/Glob, Bash, and other built-in tools.
+**Prefer doing work directly** with Probe CLI, Grep/Glob, Bash, and other built-in tools instead of launching sub-agents. The hook will warn (not block) on general Agent calls.
+
+**`/spec` reviewer agents** (`pilot:plan-reviewer`, `pilot:spec-reviewer`) pass through silently — these are expected parts of the workflow.
 
 **Search:** See `research-tools.md` for the priority chain (Probe → Grep/Glob).
 
