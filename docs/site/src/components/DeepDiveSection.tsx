@@ -120,11 +120,11 @@ const rulesCategories = [
   },
   {
     icon: GitBranch,
-    category: "Collaboration",
+    category: "Customize & Share",
     rules: [
-      "Teams asset sharing via sx",
-      "Custom rules, commands & skills",
-      "Shareable across teams via Git",
+      "Create rules, commands, skills & agents — all shareable",
+      "Share all 4 asset types across machines, teams, and orgs",
+      "Works with 50+ AI tools via Skillshare — one source of truth",
     ],
   },
   {

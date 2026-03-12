@@ -13,7 +13,7 @@ const steps = [
     icon: Download,
     label: "Install",
     detail:
-      "One curl command. Installs binary, shell integration, and dev container support.",
+      "One curl command. Installs binary, shell integration, and quality hooks.",
     color: "text-sky-400",
     bgColor: "bg-sky-400/10",
     borderColor: "border-sky-400/30",

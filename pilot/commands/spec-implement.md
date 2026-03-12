@@ -84,23 +84,22 @@ All subsequent work happens inside the worktree directory.
 **For EVERY task:**
 
 1. **Read plan's implementation steps** — list files to create/modify/delete
-2. **Pre-Mortem check:** Scan plan's `## Pre-Mortem` section — if any trigger condition is observably true for this task, note it in the plan and adapt your approach autonomously (e.g., adjust the implementation strategy, add a defensive check, or reorder steps). Handle per Deviation rules — only escalate to user if it's an architectural-level change.
-3. **Call chain analysis:** Trace callers (upwards), callees (downwards), side effects
-4. **Mark in_progress:** `TaskUpdate(taskId, status="in_progress")`
-5. **TDD Flow:**
+2. **Call chain analysis:** Trace callers (upwards), callees (downwards), side effects
+3. **Mark in_progress:** `TaskUpdate(taskId, status="in_progress")`
+4. **TDD Flow:**
    - **RED:** Write failing test → verify it fails (feature missing, not syntax error)
    - **GREEN:** Implement minimal code to pass
    - **REFACTOR:** Improve while keeping tests green
    - Skip TDD for: docs, config, IaC, formatting-only changes
    - **Surprise discovery:** If something contradicts how you expected it to work, check plan's `## Assumptions` section — identify which task numbers are affected and note the invalidated assumption in the plan before continuing.
-6. **Verify tests pass** — run test suite
-7. **Run actual program** — use plan's Runtime Environment. Check port: `lsof -i :<port>`. If using playwright-cli: `-s="${PILOT_SESSION_ID:-default}"`
-8. **Check diagnostics** — zero errors
-9. **Validate Definition of Done** — all criteria from plan
-10. **Self-review:** Completeness? Names clear? YAGNI? Tests verify behavior not implementation?
-11. **Per-task commit (worktree only):** `git add <files> && git commit -m "{type}(spec): {task-name}"`
-12. **Mark completed:** `TaskUpdate(taskId, status="completed")`
-13. **Update plan file immediately** (Step 2.4)
+5. **Verify tests pass** — run test suite
+6. **Run actual program** — use plan's Runtime Environment. Check port: `lsof -i :<port>`. If using playwright-cli: `-s="${PILOT_SESSION_ID:-default}"`
+7. **Check diagnostics** — zero errors
+8. **Validate Definition of Done** — all criteria from plan
+9. **Self-review:** Completeness? Names clear? YAGNI? Tests verify behavior not implementation?
+10. **Per-task commit (worktree only):** `git add <files> && git commit -m "{type}(spec): {task-name}"`
+11. **Mark completed:** `TaskUpdate(taskId, status="completed")`
+12. **Update plan file immediately** (Step 2.4)
 
 ---
 

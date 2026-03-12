@@ -1,11 +1,22 @@
 [build]
-  command = "npm run build"
+  command = "bash build-all.sh"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
 
-# SPA redirect
+# Docs and blog are static (Docusaurus) — no redirect
+[[redirects]]
+  from = "/docs/*"
+  to = "/docs/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/blog/*"
+  to = "/blog/:splat"
+  status = 200
+
+# SPA redirect for landing page
 [[redirects]]
   from = "/*"
   to = "/index.html"

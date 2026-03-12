@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _util import (
+from _lib.util import (
     _get_compaction_threshold_pct,
     _get_max_context_tokens,
     get_session_cache_path,

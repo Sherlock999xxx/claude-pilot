@@ -15,56 +15,7 @@
     "DISABLE_INSTALLATION_CHECKS": "true"
   },
   "permissions": {
-    "allow": [
-      "Bash",
-      "Bash(basedpyright:*)",
-      "Bash(cp:*)",
-      "Bash(find:*)",
-      "Bash(grep:*)",
-      "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Bash(mv:*)",
-      "Bash(mypy:*)",
-      "Bash(python tests:*)",
-      "Bash(python:*)",
-      "Bash(pyright:*)",
-      "Bash(pytest:*)",
-      "Bash(rg:*)",
-      "Bash(rm:*)",
-      "Bash(ruff check:*)",
-      "Bash(ruff format:*)",
-      "Bash(uv add:*)",
-      "Bash(uv pip show:*)",
-      "Bash(uv pip:*)",
-      "Bash(uv run:*)",
-      "Edit",
-      "Glob",
-      "Grep",
-      "NotebookEdit",
-      "Read",
-      "TodoWrite",
-      "WebFetch",
-      "WebSearch",
-      "Write",
-      "mcp__ide__*",
-      "mcp__plugin_pilot_mem-search__*",
-      "mcp__plugin_pilot_context7__*",
-      "mcp__plugin_pilot_web-search__*",
-      "mcp__plugin_pilot_web-fetch__*",
-      "mcp__plugin_pilot_grep-mcp__*",
-      "Skill(spec)",
-      "Skill(spec-plan)",
-      "Skill(spec-implement)",
-      "Skill(spec-verify)",
-      "Skill(spec-bugfix-plan)",
-      "Skill(spec-bugfix-verify)",
-      "Skill(sync)",
-      "Skill(learn)",
-      "Task(spec-reviewer:*)",
-      "Task(plan-reviewer:*)",
-      "LSP"
-    ],
-    "deny": []
+    "defaultMode": "bypassPermissions"
   },
   "skipDangerousModePermissionPrompt": true,
   "terminalProgressBarEnabled": true,
@@ -115,7 +66,7 @@
       "[PILOT] Create your own skills in .claude/skills/ (avoid standards-* prefix)",
       "[PILOT] Run /sync after adding MCP servers or changing project structure",
       "[PILOT] /sync discovers undocumented patterns in your codebase and generates rules automatically",
-      "[PILOT] Teams Dashboard → Manage shared skills, rules, and commands in the Console at localhost:41777/#/teams",
+      "[PILOT] Share Dashboard → Manage and sync skills across machines and teams in the Console at localhost:41777/#/share",
       "[PILOT] /learn extracts reusable knowledge from debugging sessions and workarounds into skills",
       "[PILOT] Both /spec and Quick Mode benefit from auto-compaction and persistent memory",
       "[PILOT] Multi-Session: Run multiple pilot sessions in the same project — each is fully isolated",
@@ -131,16 +82,15 @@
       "[PILOT] Pilot works with any existing project — no scaffolding, no restructuring required",
       "[PILOT] Install a specific version: export VERSION=x.y.z before running the install script",
       "[PILOT] Platforms: macOS, Linux, and Windows (WSL2) are all supported",
-      "[PILOT] Dev Container recommended — isolated environment, no system conflicts",
+      "[PILOT] Works on macOS, Linux, and Windows (WSL2) — one installer, all platforms",
       "[PILOT] Please star the repository: github.com/maxritter/pilot-shell",
       "[PILOT] Fun fact: Pilot is built with Pilot — a self-improving development loop"
     ],
     "excludeDefault": true
   },
   "prefersReducedMotion": true,
-  "showTurnDuration": false,
+  "showTurnDuration": true,
   "alwaysThinkingEnabled": true,
-  "respectGitignore": false,
   "attribution": {
     "commit": "",
     "pr": ""
@@ -151,6 +101,6 @@
     "padding": 0
   },
   "companyAnnouncements": [
-    "👨‍✈️ Console: http://localhost:41777 | 📋 /spec — plan, build & verify | 🔄 /sync — sync rules | 🧠 /learn — extract skills"
+    "👨‍✈️ Console: http://localhost:41777 | 📋 /spec — plan, build & verify | 🔄 /sync — explore codebase | 🧠 /learn — create skills"
   ]
 }

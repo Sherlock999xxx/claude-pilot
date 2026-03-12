@@ -8,7 +8,6 @@ from pathlib import Path
 
 from installer import __version__
 from installer.context import InstallContext
-from installer.platform_utils import is_in_devcontainer
 from installer.steps.base import BaseStep
 
 
@@ -58,9 +57,7 @@ class FinalizeStep(BaseStep):
 
         steps: list[tuple[str, str]] = []
 
-        in_container = is_in_devcontainer()
-
-        if not in_container and ctx.config.get("shell_needs_reload"):
+        if ctx.config.get("shell_needs_reload"):
             modified = ctx.config.get("modified_shell_configs", [])
             reload_cmds = []
             for f in modified:
@@ -74,19 +71,11 @@ class FinalizeStep(BaseStep):
             if reload_cmds:
                 cmd_str = " or ".join(reload_cmds)
                 steps.append(("🔄 Reload shell", f"{cmd_str} (or restart terminal)"))
-        elif in_container:
-            project_slug = ctx.project_dir.name.lower().replace(" ", "-").replace("_", "-")
-            steps.append(
-                (
-                    "🐳 Connect to dev container",
-                    f'docker exec -it $(docker ps --filter "name={project_slug}" -q) zsh',
-                )
-            )
 
         steps.append(("Launch Pilot Shell", "Run: pilot (in your project folder)"))
-        steps.append(("/sync", "Learn your codebase conventions and generate project rules"))
+        steps.append(("/sync", "Explore your codebase and update rules and skills"))
         steps.append(("/spec", "Plan, implement & verify features and bug fixes (replaces Claude Code's plan mode)"))
-        steps.append(("/learn", "Extract reusable knowledge into skills from sessions"))
+        steps.append(("/learn", "Create well-structured skills to automate your workflows"))
         steps.append(("Pilot Shell Console", "Open in your browser at: http://localhost:41777"))
 
         ui.next_steps(steps)

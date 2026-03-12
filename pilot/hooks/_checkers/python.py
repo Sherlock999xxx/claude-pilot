@@ -7,7 +7,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from _util import check_file_length
+from _lib.util import check_file_length
 
 
 def check_python(file_path: Path) -> tuple[int, str]:

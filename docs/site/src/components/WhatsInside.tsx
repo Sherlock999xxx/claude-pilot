@@ -3,7 +3,7 @@ import {
   Plug2,
   GitBranch,
   Lightbulb,
-  Infinity as InfinityIcon,
+  Sparkles,
   Search,
   Stethoscope,
   Terminal,
@@ -20,17 +20,17 @@ interface InsideItem {
 const insideItems: InsideItem[] = [
   {
     icon: Workflow,
-    title: "Spec-Driven Development",
+    title: "Spec-Driven",
     description: "Plan → Implement → Verify",
     summary:
       "A structured workflow with human review gates, sequential TDD, mandatory verification, and independent code review. Loops back automatically if any check fails.",
   },
   {
-    icon: InfinityIcon,
-    title: "Unlimited Context",
-    description: "Auto-compaction, zero interruptions",
+    icon: Sparkles,
+    title: "Customize & Share",
+    description: "Create assets, share everywhere",
     summary:
-      "Decisions, plans, and progress are preserved across context boundaries. Sessions run indefinitely — no manual restarts, no lost work.",
+      "Create rules, commands, skills, and agents in .claude/ — all plain markdown. Share all four asset types across machines via git, across teams via project repos, or org-wide via tracked repos. Works with 50+ AI tools — one source of truth for Claude Code, Cursor, Codex, and more.",
   },
   {
     icon: Plug2,

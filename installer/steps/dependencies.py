@@ -137,25 +137,85 @@ def install_probe() -> bool:
     return _run_bash_with_retry(npm_global_cmd("npm install -g @probelabs/probe"))
 
 
-def install_sx() -> bool:
-    """Install sx (sleuth.io skills exchange) for team asset sharing."""
-    if not command_exists("sx"):
-        if not _run_bash_with_retry("curl -fsSL https://raw.githubusercontent.com/sleuth-io/sx/main/install.sh | bash"):
+def install_skillshare() -> bool:
+    """Install Skillshare CLI binary and configure extras.
+
+    Only installs the binary and sets up extras config (non-destructive).
+    Does NOT run init, collect, sync, or backup — users should use the CLI
+    or the Console Share page for guidance on initialization.
+    """
+    if not command_exists("skillshare"):
+        if not _run_bash_with_retry(
+            "curl -fsSL https://raw.githubusercontent.com/runkids/skillshare/main/install.sh | sh",
+            timeout=120,
+        ):
             return False
 
-    # Disable all clients except claude-code to prevent .cursor/.gemini folders
-    for client in ("gemini", "cursor", "github-copilot", "codex"):
-        _run_bash_with_retry(f"sx clients disable {client}")
+    _configure_skillshare_extras()
 
     return True
 
 
-def update_sx() -> bool:
-    """Update sx to the latest version."""
-    if not command_exists("sx"):
+def _configure_skillshare_extras() -> None:
+    """Add extras config (rules, commands, agents) to skillshare global config.
+
+    Extras allow syncing non-skill resources to Claude's directories via
+    `skillshare sync --all`. Uses merge mode so user-created and Pilot-managed
+    files are preserved alongside shared extras.
+    """
+    config_path = Path.home() / ".config" / "skillshare" / "config.yaml"
+    if not config_path.exists():
+        return
+
+    try:
+        content = config_path.read_text()
+    except OSError:
+        return
+
+    if "extras:" in content:
+        return
+
+    extras_block = (
+        "\nextras:\n"
+        "    - name: rules\n"
+        "      targets:\n"
+        "        - path: ~/.claude/rules\n"
+        "    - name: commands\n"
+        "      targets:\n"
+        "        - path: ~/.claude/commands\n"
+        "    - name: agents\n"
+        "      targets:\n"
+        "        - path: ~/.claude/agents\n"
+    )
+
+    try:
+        config_path.write_text(content.rstrip() + "\n" + extras_block)
+    except OSError:
+        return
+
+    base = Path.home() / ".config" / "skillshare"
+    for name in ("rules", "commands", "agents"):
+        (base / name).mkdir(parents=True, exist_ok=True)
+
+
+def update_skillshare() -> bool:
+    """Update Skillshare CLI if a newer version is available."""
+    if not command_exists("skillshare"):
         return False
 
-    return _run_bash_with_retry("sx update")
+    try:
+        result = subprocess.run(
+            ["skillshare", "upgrade", "--dry-run"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if "Already up to date" in result.stdout:
+            return True
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+
+    return _run_bash_with_retry("skillshare upgrade --force")
 
 
 def _is_vtsls_installed() -> bool:
@@ -455,7 +515,9 @@ def _install_claude_code_with_ui(ui: Any) -> bool:
         if result:
             ui.success("Claude Code installed")
         else:
-            ui.warning("Could not install Claude Code - please install manually: https://docs.anthropic.com/en/docs/claude-code/setup")
+            ui.warning(
+                "Could not install Claude Code - please install manually: https://docs.anthropic.com/en/docs/claude-code/setup"
+            )
         return result
     else:
         return install_claude_code()
@@ -663,9 +725,9 @@ class DependenciesStep(BaseStep):
         if _install_probe_with_ui(ui):
             installed.append("probe")
 
-        if _install_with_spinner(ui, "sx (team assets)", install_sx):
-            installed.append("sx")
-            _install_with_spinner(ui, "sx update", update_sx)
+        if _install_with_spinner(ui, "Skillshare (skill sharing)", install_skillshare):
+            installed.append("skillshare")
+            _install_with_spinner(ui, "skillshare upgrade", update_skillshare)
 
         if _install_with_spinner(ui, "MCP server packages", _precache_npx_mcp_servers, ui):
             installed.append("mcp_npx_cache")

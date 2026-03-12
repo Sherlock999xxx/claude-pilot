@@ -6,7 +6,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from tdd_enforcer import (
+from _checkers.tdd import (
     _find_test_dirs,
     _pascal_to_kebab,
     _search_test_dirs,

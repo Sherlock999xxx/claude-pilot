@@ -3,7 +3,5 @@
   "autoUpdates": true,
   "lspRecommendationDisabled": true,
   "autoCompactEnabled": true,
-  "autoConnectIde": true,
-  "verbose": true,
-  "showSpinnerTree": false
+  "showSpinnerTree": true
 }

@@ -28,11 +28,11 @@ if ! git cat-file -e "$VERCEL_GIT_PREVIOUS_SHA" 2>/dev/null; then
   exit 1
 fi
 
-# 5. Check if docs/site/ changed since the last successful deployment
-if git diff --quiet "$VERCEL_GIT_PREVIOUS_SHA" HEAD -- docs/site/; then
-  echo "Skip: no changes in docs/site/"
+# 5. Check if docs/site/ or docs/docusaurus/ changed since the last successful deployment
+if git diff --quiet "$VERCEL_GIT_PREVIOUS_SHA" HEAD -- docs/site/ docs/docusaurus/; then
+  echo "Skip: no changes in docs/site/ or docs/docusaurus/"
   exit 0
 else
-  echo "Build: docs/site/ changed"
+  echo "Build: docs changed"
   exit 1
 fi

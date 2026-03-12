@@ -240,7 +240,10 @@ class TestMigrationPreservesExistingData:
 
     def test_handles_missing_commands_key(self, tmp_path: Path) -> None:
         """Config without commands key doesn't crash."""
-        from installer.steps.config_migration import migrate_model_config
+        from installer.steps.config_migration import (
+            CURRENT_CONFIG_VERSION,
+            migrate_model_config,
+        )
 
         config_path = tmp_path / "config.json"
         config_path.write_text(json.dumps({"model": "opus"}))
@@ -249,11 +252,14 @@ class TestMigrationPreservesExistingData:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["_configVersion"] == 2
+        assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
 
     def test_handles_missing_agents_key(self, tmp_path: Path) -> None:
         """Config without agents key doesn't crash."""
-        from installer.steps.config_migration import migrate_model_config
+        from installer.steps.config_migration import (
+            CURRENT_CONFIG_VERSION,
+            migrate_model_config,
+        )
 
         config_path = tmp_path / "config.json"
         config_path.write_text(json.dumps({"model": "opus", "commands": {}}))
@@ -262,4 +268,141 @@ class TestMigrationPreservesExistingData:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["_configVersion"] == 2
+        assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
+
+
+class TestMigrationV3:
+    """Migration v2 → v3: Disable plan review, spec review, and worktree support."""
+
+    def test_disables_all_three_when_enabled(self, tmp_path: Path) -> None:
+        """All three toggles are disabled when currently enabled."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({
+            "model": "opus",
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+            "specWorkflow": {
+                "worktreeSupport": True,
+                "askQuestionsDuringPlanning": True,
+                "planApproval": True,
+            },
+            "_configVersion": 2,
+        }))
+
+        result = migrate_model_config(config_path)
+
+        assert result is True
+        migrated = json.loads(config_path.read_text())
+        assert migrated["reviewerAgents"]["planReviewer"] is False
+        assert migrated["reviewerAgents"]["specReviewer"] is False
+        assert migrated["specWorkflow"]["worktreeSupport"] is False
+        assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
+        assert migrated["specWorkflow"]["planApproval"] is True
+
+    def test_already_disabled_not_changed(self, tmp_path: Path) -> None:
+        """Toggles already set to false are left alone."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({
+            "model": "opus",
+            "reviewerAgents": {"planReviewer": False, "specReviewer": False},
+            "specWorkflow": {
+                "worktreeSupport": False,
+                "askQuestionsDuringPlanning": True,
+                "planApproval": True,
+            },
+            "_configVersion": 2,
+        }))
+
+        result = migrate_model_config(config_path)
+
+        assert result is True
+        migrated = json.loads(config_path.read_text())
+        assert migrated["reviewerAgents"]["planReviewer"] is False
+        assert migrated["reviewerAgents"]["specReviewer"] is False
+        assert migrated["specWorkflow"]["worktreeSupport"] is False
+
+    def test_partial_enabled(self, tmp_path: Path) -> None:
+        """Only enabled toggles are disabled; already-false ones stay false."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({
+            "model": "opus",
+            "reviewerAgents": {"planReviewer": True, "specReviewer": False},
+            "specWorkflow": {
+                "worktreeSupport": False,
+                "askQuestionsDuringPlanning": True,
+                "planApproval": True,
+            },
+            "_configVersion": 2,
+        }))
+
+        result = migrate_model_config(config_path)
+
+        assert result is True
+        migrated = json.loads(config_path.read_text())
+        assert migrated["reviewerAgents"]["planReviewer"] is False
+        assert migrated["reviewerAgents"]["specReviewer"] is False
+        assert migrated["specWorkflow"]["worktreeSupport"] is False
+
+    def test_missing_reviewer_agents_creates_defaults(self, tmp_path: Path) -> None:
+        """Missing reviewerAgents key gets created with disabled defaults."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({
+            "model": "opus",
+            "commands": {},
+            "_configVersion": 2,
+        }))
+
+        result = migrate_model_config(config_path)
+
+        assert result is True
+        migrated = json.loads(config_path.read_text())
+        assert migrated["reviewerAgents"]["planReviewer"] is False
+        assert migrated["reviewerAgents"]["specReviewer"] is False
+
+    def test_missing_spec_workflow_creates_defaults(self, tmp_path: Path) -> None:
+        """Missing specWorkflow key gets created with worktree disabled."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({
+            "model": "opus",
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+            "_configVersion": 2,
+        }))
+
+        result = migrate_model_config(config_path)
+
+        assert result is True
+        migrated = json.loads(config_path.read_text())
+        assert migrated["specWorkflow"]["worktreeSupport"] is False
+        assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
+        assert migrated["specWorkflow"]["planApproval"] is True
+
+    def test_preserves_other_spec_workflow_toggles(self, tmp_path: Path) -> None:
+        """askQuestionsDuringPlanning and planApproval are preserved."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({
+            "model": "opus",
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+            "specWorkflow": {
+                "worktreeSupport": True,
+                "askQuestionsDuringPlanning": False,
+                "planApproval": False,
+            },
+            "_configVersion": 2,
+        }))
+
+        migrate_model_config(config_path)
+
+        migrated = json.loads(config_path.read_text())
+        assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is False
+        assert migrated["specWorkflow"]["planApproval"] is False

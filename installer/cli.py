@@ -446,7 +446,7 @@ def create_parser() -> argparse.ArgumentParser:
     install_parser.add_argument(
         "--local-system",
         action="store_true",
-        help="Local installation (not in container)",
+        help="Install system-level dependencies via Homebrew",
     )
     install_parser.add_argument(
         "--target-version",

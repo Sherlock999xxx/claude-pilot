@@ -20,12 +20,13 @@ hooks:
 ## ⛔ KEY CONSTRAINTS
 
 1. **Run code review when enabled** — Step 3.1 launches `spec-reviewer` via `Task(subagent_type="pilot:spec-reviewer")` when `PILOT_SPEC_REVIEWER_ENABLED` is not `"false"` (read in Step 0). To disable, use Console Settings → Reviewers → Code Review toggle.
-2. **NO stopping** — Everything automatic. Never ask "Should I fix these?"
-3. **Fix ALL findings** — must_fix AND should_fix. No permission needed.
-4. **Code changes finish BEFORE runtime testing** — Phase A then Phase B.
-5. **Plan file is source of truth** — re-read it after auto-compaction, don't rely on conversation memory.
-6. **Re-verification after fixes is MANDATORY** — fixes can introduce new bugs.
-7. **Quality over speed** — never rush due to context pressure.
+2. **Only spec-reviewer** — Do NOT launch `plan-reviewer` during verification. Plan-reviewer reviews *plans* before implementation, not code. Running it here wastes tokens flagging plan-level concerns that were already addressed during implementation.
+3. **NO stopping** — Everything automatic. Never ask "Should I fix these?"
+4. **Fix ALL findings** — must_fix AND should_fix. No permission needed.
+5. **Code changes finish BEFORE runtime testing** — Phase A then Phase B.
+6. **Plan file is source of truth** — re-read it after auto-compaction, don't rely on conversation memory.
+7. **Re-verification after fixes is MANDATORY** — fixes can introduce new bugs.
+8. **Quality over speed** — never rush due to context pressure.
 
 ---
 

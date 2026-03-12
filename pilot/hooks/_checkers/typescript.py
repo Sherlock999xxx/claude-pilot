@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from _util import BLUE, NC, check_file_length
+from _lib.util import BLUE, NC, check_file_length
 
 TS_EXTENSIONS = {".ts", ".tsx", ".js", ".jsx", ".mjs", ".mts"}
 DEBUG = os.environ.get("HOOK_DEBUG", "").lower() == "true"

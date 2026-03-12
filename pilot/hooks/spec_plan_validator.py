@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _util import is_waiting_for_user_input, stop_block
+from _lib.util import is_waiting_for_user_input, stop_block
 
 
 def main() -> int:

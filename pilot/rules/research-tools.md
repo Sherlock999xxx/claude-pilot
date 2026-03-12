@@ -4,7 +4,7 @@
 
 **⛔ Probe CLI first, always.** Finds by intent, not exact text. Instant results (<0.3s). Run via Bash.
 
-**Fallback chain:** Probe CLI (`probe search`) → Grep/Glob (exact patterns) → Explore sub-agent (multi-step reasoning only)
+**Fallback chain:** Probe CLI (`probe search`) → Grep/Glob (exact patterns)
 
 Full Probe reference in `cli-tools.md`. Full MCP tool reference in `mcp-servers.md`.
 
@@ -24,9 +24,9 @@ Full Probe reference in `cli-tools.md`. Full MCP tool reference in `mcp-servers.
 | GitHub operations | `gh` CLI | Authenticated, `--json` + `--jq` |
 | Past work / decisions | mem-search (MCP) | `search` → `timeline` → `get_observations` |
 
-### ⛔ Explore Agent
+### ⛔ Agent Tool — BANNED
 
-**NEVER use Agent(subagent_type="Explore") as a first choice — blocked by hook.** Explore spawns a sub-agent that duplicates what Probe does instantly. Run multiple `probe search` calls instead. Only consider Explore after Probe AND Grep/Glob both fail AND you need multi-step reasoning across many files.
+**NEVER use the Agent tool — ALL sub-agent calls are blocked by hook and will be denied.** Sub-agents waste tokens duplicating work that can be done directly with Probe, Grep/Glob, and Bash. Do the work yourself instead of delegating.
 
 ### ⛔ Web Search/Fetch
 

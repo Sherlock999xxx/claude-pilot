@@ -29,9 +29,9 @@ Slug = plan filename without date prefix and `.md`. `create` auto-stashes uncomm
 
 Probe is installed globally via npm: `npm install -g @probelabs/probe`
 
-**⛔ Always use `--max-results 5 --max-tokens 2000`** to keep context lean. This returns ~5 relevant code snippets within ~300 tokens — enough to understand patterns without bloating the 200k context window.
-
 #### `probe search` — Semantic Code Search
+
+**⛔ Always use `--max-results 5 --max-tokens 2000`** on `probe search` to keep context lean. These flags are **`probe search` only** — do NOT use them with `probe extract` or `probe query` (they don't support them and will error).
 
 ```bash
 # ⛔ Default: always limit results to protect context

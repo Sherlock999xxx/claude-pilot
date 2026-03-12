@@ -223,7 +223,6 @@ __marimo__/
 
 # Claude Code
 CLAUDE.md
-.devcontainer
 .playwright-*/
 .vercel
 .mcp.json

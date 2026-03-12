@@ -44,16 +44,6 @@ class TestShellConfig:
         assert any(name in path_names for name in common_configs)
 
 
-class TestIsInDevcontainer:
-    """Test devcontainer detection."""
-
-    def test_is_in_devcontainer_returns_bool(self):
-        """is_in_devcontainer returns boolean."""
-        from installer.platform_utils import is_in_devcontainer
-
-        result = is_in_devcontainer()
-        assert isinstance(result, bool)
-
 
 class TestIsAptAvailable:
     """Test apt availability detection."""

@@ -229,7 +229,7 @@ Type: Bugfix
 **Verify:** `uv run pytest -q && ruff check . && basedpyright launcher`
 ```
 
-**Do NOT include:** Status lifecycle blockquote, separate "Testing Strategy" section, "Goal Verification / Truths / Artifacts" sections, "Risks and Mitigations" table, "Prerequisites" section, per-task "Definition of Done" checklists, per-task "Dependencies" field.
+**Do NOT include:** "Goal Verification" sections, "Risks and Mitigations" table, "Assumptions" section, per-task "Definition of Done" checklists, per-task "Dependencies" field.
 
 ---
 

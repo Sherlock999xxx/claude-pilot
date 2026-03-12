@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _util import _sessions_base, get_session_plan_path, is_waiting_for_user_input, stop_block
+from _lib.util import _sessions_base, get_session_plan_path, is_waiting_for_user_input, stop_block
 
 COOLDOWN_SECONDS = 60
 

@@ -178,50 +178,10 @@ confirm_local_install() {
 	fi
 	case "$confirm" in
 	[Nn] | [Nn][Oo])
-		echo "  Cancelled. Run again to choose Dev Container instead."
+		echo "  Cancelled."
 		exit 0
 		;;
 	esac
-}
-
-setup_devcontainer() {
-	if [ -d ".devcontainer" ]; then
-		echo "  [OK] .devcontainer already exists"
-	else
-		echo "  [..] Downloading dev container configuration..."
-		download_file ".devcontainer/Dockerfile" ".devcontainer/Dockerfile"
-		download_file ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json"
-
-		PROJECT_NAME="$(basename "$(pwd)")"
-		PROJECT_SLUG="$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | tr ' _' '-')"
-		if [ -f ".devcontainer/devcontainer.json" ]; then
-			sed -i.bak 's/"pilot-shell"/"'"${PROJECT_SLUG}"'"/g' ".devcontainer/devcontainer.json"
-			sed -i.bak 's|/workspaces/pilot-shell|/workspaces/'"${PROJECT_SLUG}"'|g' ".devcontainer/devcontainer.json"
-			rm -f ".devcontainer/devcontainer.json.bak"
-		fi
-
-		echo "  [OK] Dev container configuration installed"
-	fi
-
-	if [ ! -f ".vscode/extensions.json" ]; then
-		echo "  [..] Downloading VS Code extensions recommendations..."
-		download_file ".vscode/extensions.json" ".vscode/extensions.json"
-		echo "  [OK] VS Code extensions recommendations installed"
-	else
-		echo "  [OK] .vscode/extensions.json already exists"
-	fi
-
-	echo ""
-	echo "  Next steps:"
-	echo "    1. Open this folder in VS Code"
-	echo "    2. Install the 'Dev Containers' extension"
-	echo "    3. Press Cmd+Shift+P (Mac) or Ctrl+Shift+P (Windows/Linux)"
-	echo "    4. Run: 'Dev Containers: Reopen in Container'"
-	echo "    5. Once inside the container, run this installer again"
-	echo ""
-	echo "======================================================================"
-	echo ""
-	exit 0
 }
 
 download_installer() {
@@ -422,13 +382,13 @@ run_installer() {
 		local_arg="--local --local-repo-dir $(pwd)"
 	fi
 
-	if ! is_in_container && [ ! -d ".devcontainer" ]; then
-		uv run --python 3.12 --no-project --with rich --with certifi \
-			python -m installer install --local-system $version_arg $local_arg "$@"
-	else
-		uv run --python 3.12 --no-project --with rich --with certifi \
-			python -m installer install $version_arg $local_arg "$@"
+	local system_arg=""
+	if ! is_in_container; then
+		system_arg="--local-system"
 	fi
+
+	uv run --python 3.12 --no-project --with rich --with certifi \
+		python -m installer install $system_arg $version_arg $local_arg "$@"
 }
 
 is_native_windows() {
@@ -438,131 +398,40 @@ is_native_windows() {
 	esac
 }
 
-if is_native_windows && ! is_in_container; then
+if is_native_windows; then
 	echo ""
 	echo "======================================================================"
-	echo "  Pilot Shell — Windows Detected (no WSL2)"
+	echo "  Pilot Shell — Windows Detected"
 	echo "======================================================================"
 	echo ""
-	echo "  Pilot's local mode requires a Unix environment (macOS, Linux, or WSL2)."
+	echo "  Pilot Shell requires a Unix environment (macOS, Linux, or WSL2)."
 	echo ""
-	echo "  Your options:"
+	echo "  Install WSL2 first (PowerShell as admin):"
+	echo "    wsl --install -d Ubuntu"
 	echo ""
-	echo "    1) Install WSL2, then run this installer inside Ubuntu"
-	echo "       PowerShell (admin): wsl --install -d Ubuntu"
+	echo "  Then open Ubuntu and re-run this installer."
 	echo ""
-	echo "    2) Use the Dev Container (works without WSL2)"
-	echo "       Requires Docker Desktop for Windows."
-	echo "       Must be run from inside your project directory."
-	echo ""
-	echo "  Choose: "
-
-	choice=""
-	if [ -t 0 ]; then
-		printf "  Enter choice [1-2]: "
-		read -r choice
-	elif [ -e /dev/tty ]; then
-		printf "  Enter choice [1-2]: "
-		read -r choice </dev/tty
-	else
-		echo "  No interactive terminal. Install WSL2 or Docker Desktop."
-		exit 1
-	fi
-
-	case $choice in
-	2)
-		echo ""
-		echo "  Dev Container mode creates .devcontainer/ in the current directory."
-		echo "  Current directory: $(pwd)"
-		echo ""
-		setup_devcontainer
-		;;
-	*)
-		echo ""
-		echo "  Install WSL2 first (PowerShell as admin):"
-		echo "    wsl --install -d Ubuntu"
-		echo ""
-		echo "  Then open Ubuntu and re-run this installer."
-		echo ""
-		exit 0
-		;;
-	esac
+	exit 1
 fi
 
-if ! is_in_container; then
-	echo ""
-	echo "======================================================================"
-	echo "  Pilot Shell Installer (v${VERSION})"
-	echo "======================================================================"
-	echo ""
-	echo "  Current project folder: $(pwd)"
-	echo ""
+echo ""
+echo "======================================================================"
+echo "  Pilot Shell Installer (v${VERSION})"
+echo "======================================================================"
+echo ""
 
-	if [ -d ".devcontainer" ]; then
-		echo "  Detected .devcontainer - using Dev Container mode."
-		echo ""
-		setup_devcontainer
-	elif [ "$RESTART_PILOT" = true ]; then
-		echo "  Updating local installation..."
-		echo ""
-	else
-		echo "  Choose installation method:"
-		echo ""
-		echo "    1) Local - Install directly on your system (run from any directory)"
-		echo "    2) Dev Container - Isolated, pre-configured environment"
-		echo "       (must be run from inside your project directory)"
-		echo ""
-
-		choice=""
-		if [ -t 0 ]; then
-			printf "  Enter choice [1-2]: "
-			read -r choice
-		elif [ -e /dev/tty ]; then
-			printf "  Enter choice [1-2]: "
-			read -r choice </dev/tty
-		else
-			echo "  No interactive terminal available, defaulting to Local."
-			choice="1"
-		fi
-
-		case $choice in
-		2)
-			echo ""
-			echo "  Dev Container mode creates .devcontainer/ in the current directory."
-			echo "  Current directory: $(pwd)"
-			echo ""
-			if [ ! -d ".git" ]; then
-				echo "  [!!] Warning: This doesn't look like a project root (no .git/ found)."
-				echo "  [!!] cd into your project directory first, then re-run the installer."
-				echo ""
-				confirm=""
-				if [ -t 0 ]; then
-					printf "  Continue anyway? [y/N]: "
-					read -r confirm
-				elif [ -e /dev/tty ]; then
-					printf "  Continue anyway? [y/N]: "
-					read -r confirm </dev/tty
-				else
-					confirm="n"
-				fi
-				case "$confirm" in
-				[Yy] | [Yy][Ee][Ss]) ;;
-				*)
-					echo "  Cancelled. cd into your project directory and re-run."
-					exit 0
-					;;
-				esac
-			fi
-			setup_devcontainer
-			;;
-		*)
-			echo ""
-			echo "  Local Installation selected"
-			echo ""
-			confirm_local_install
-			;;
-		esac
-	fi
+if is_in_container; then
+	echo "  Running inside container — skipping system dependencies"
+	echo ""
+elif [ "$RESTART_PILOT" = true ]; then
+	echo "  Updating local installation..."
+	echo ""
+elif [ "$USE_LOCAL_INSTALLER" = true ]; then
+	echo "  Local installation selected (--local)"
+	echo ""
+	confirm_local_install
+else
+	confirm_local_install
 fi
 
 echo ""

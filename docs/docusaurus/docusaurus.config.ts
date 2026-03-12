@@ -1,0 +1,119 @@
+import { themes as prismThemes } from "prism-react-renderer";
+import type { Config } from "@docusaurus/types";
+import type * as Preset from "@docusaurus/preset-classic";
+
+const config: Config = {
+  title: "Pilot Shell",
+  tagline: "The professional development environment for Claude Code",
+  favicon: "img/favicon.png",
+
+  url: "https://pilot-shell.com",
+  baseUrl: "/",
+
+  organizationName: "maxritter",
+  projectName: "pilot-shell",
+
+  onBrokenLinks: "warn",
+
+  markdown: {
+    format: "md",
+    hooks: {
+      onBrokenMarkdownLinks: "warn",
+    },
+  },
+
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en"],
+  },
+
+  themes: ["@easyops-cn/docusaurus-search-local"],
+
+  presets: [
+    [
+      "classic",
+      {
+        docs: {
+          routeBasePath: "docs",
+          sidebarPath: "./sidebars.ts",
+          editUrl:
+            "https://github.com/maxritter/pilot-shell/tree/main/docs/docusaurus/",
+        },
+        blog: false,
+        theme: {
+          customCss: "./src/css/custom.css",
+        },
+      } satisfies Preset.Options,
+    ],
+  ],
+
+  themeConfig: {
+    colorMode: {
+      defaultMode: "dark",
+      disableSwitch: false,
+      respectPrefersColorScheme: true,
+    },
+    navbar: {
+      title: "Pilot Shell",
+      logo: {
+        alt: "Pilot Shell Logo",
+        src: "img/favicon.png",
+        href: "/docs/",
+      },
+      items: [
+        {
+          type: "docSidebar",
+          sidebarId: "docsSidebar",
+          position: "left",
+          label: "Docs",
+        },
+        {
+          href: "https://pilot-shell.com",
+          label: "Home",
+          position: "right",
+        },
+        {
+          href: "https://github.com/maxritter/pilot-shell",
+          label: "GitHub",
+          position: "right",
+        },
+      ],
+    },
+    footer: {
+      style: "dark",
+      links: [
+        {
+          title: "Docs",
+          items: [
+            { label: "Getting Started", to: "/docs/getting-started/prerequisites" },
+            { label: "Workflows", to: "/docs/workflows/sync" },
+            { label: "Features", to: "/docs/features/share" },
+          ],
+        },
+        {
+          title: "Community",
+          items: [
+            {
+              label: "GitHub",
+              href: "https://github.com/maxritter/pilot-shell",
+            },
+          ],
+        },
+        {
+          title: "More",
+          items: [
+            { label: "Home", href: "https://pilot-shell.com" },
+          ],
+        },
+      ],
+      copyright: `Copyright ${new Date().getFullYear()} Pilot Shell. Built with Docusaurus.`,
+    },
+    prism: {
+      theme: prismThemes.github,
+      darkTheme: prismThemes.dracula,
+      additionalLanguages: ["bash", "json", "python", "toml"],
+    },
+  } satisfies Preset.ThemeConfig,
+};
+
+export default config;

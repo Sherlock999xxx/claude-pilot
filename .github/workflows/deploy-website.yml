@@ -7,6 +7,7 @@ name: Deploy Website
       - main
     paths:
       - "docs/site/**"
+      - "docs/docusaurus/**"
       - ".github/workflows/deploy-website.yml"
   workflow_dispatch:
 

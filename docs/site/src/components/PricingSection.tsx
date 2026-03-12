@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Check, Building2, Clock, Sparkles } from "lucide-react";
+import { Check, Building2, Clock, Sparkles, Calendar, Mail } from "lucide-react";
 import { PolarEmbedCheckout } from "@polar-sh/checkout/embed";
 import { Button } from "@/components/ui/button";
 import { useInView } from "@/hooks/use-in-view";
@@ -142,6 +142,12 @@ const PricingSection = () => {
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
+                  Cross-machine skill sync — push/pull skills across all your machines
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
                   Community support via GitHub Issues
                 </span>
               </li>
@@ -195,7 +201,7 @@ const PricingSection = () => {
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Team asset sharing — manage shared assets in the Teams console dashboard
+                  Team license management — assign and manage Pilot Shell for your whole team
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -225,8 +231,8 @@ const PricingSection = () => {
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          All plans work across multiple personal machines and Dev Containers —
-          one subscription, all your devices.
+          All plans work across multiple personal machines — one subscription,
+          all your devices.
         </p>
         <p className="text-center text-sm text-muted-foreground mt-2">
           Already a subscriber?{" "}
@@ -234,6 +240,34 @@ const PricingSection = () => {
             Manage your subscription
           </a>
         </p>
+
+        {/* Rolling out for your team */}
+        <div className="mt-16 text-center max-w-3xl mx-auto">
+          <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
+            Rolling Out for Your Team?
+          </h3>
+          <p className="text-muted-foreground text-base sm:text-lg mb-6">
+            Let's figure out if Pilot Shell is the right fit for your team and get everyone set up.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button size="lg" asChild>
+              <a
+                href="https://calendly.com/rittermax/pilot-shell"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                Book a Call
+              </a>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <a href="mailto:mail@maxritter.net">
+                <Mail className="mr-2 h-4 w-4" />
+                Send a Message
+              </a>
+            </Button>
+          </div>
+        </div>
       </div>
     </section>
   );

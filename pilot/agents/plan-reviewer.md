@@ -13,7 +13,7 @@ Verify plans against user requirements and challenge dangerous assumptions. Comb
 
 ## ⛔ Performance Budget
 
-**Hard limit: ≤ 7 tool calls total** (excluding the final Write). Pattern: Read plan (1) → 2-4 targeted Grep calls for riskiest assumptions → Write output (1). Do NOT read every file mentioned in the plan. Do NOT review Assumptions or Pre-Mortem sections. Flag unverifiable claims as `untested_assumption` rather than spending tool calls.
+**Hard limit: ≤ 7 tool calls total** (excluding the final Write). Pattern: Read plan (1) → 2-4 targeted Grep calls for riskiest assumptions → Write output (1). Do NOT read every file mentioned in the plan. Flag unverifiable claims as `untested_assumption` rather than spending tool calls.
 
 **Token discipline:** Do NOT repeat plan content in your reasoning. Note issues as you read, then write output. Keep internal reasoning minimal — your job is to find issues, not narrate.
 

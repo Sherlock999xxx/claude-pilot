@@ -216,20 +216,7 @@ Incorporate user choices into plan design, proceed to Step 1.5.
 After creating tasks, derive for the `## Goal Verification` section:
 1. State the goal
 2. Derive 3-7 observable truths (falsifiable, user-perspective)
-3. For each truth, identify supporting artifacts (files with real implementation)
-4. Identify 2-5 key links (critical component connections)
-
-#### Step 1.5.2: Pre-Mortem & Falsification Signals
-
-**Assume this plan failed after full execution. Why?** Write 2-3 failure scenarios with observable trigger conditions checked during implementation.
-
-**This is distinct from Risks** (external dependencies outside your control) and from **Goal Verification truths** (what success looks like). Pre-Mortem covers *internal approach validity* — where your own design choices or assumptions could be wrong.
-
-Example: Risk = "Redis is unavailable" | Pre-Mortem = "We assumed sessions are stateless but they're not — trigger: session data can't round-trip through the new format in first integration test"
-
-**During implementation**, these triggers are handled autonomously — the implementer adapts the approach, not stops the workflow.
-
-Write these to the `## Pre-Mortem` section of the plan.
+3. For each truth, identify supporting artifacts (files with real implementation, not stubs)
 
 ### Step 1.6: Write Full Plan
 
@@ -273,23 +260,14 @@ Type: Feature
 - [What you assume] — supported by [finding/file:line] — Tasks N, M depend on this
 - [What you assume] — supported by [finding/file:line] — Task N depends on this
 
-## Testing Strategy
-- Unit / Integration / Manual verification
-
 ## Risks and Mitigations
 | Risk | Likelihood | Impact | Mitigation |
 ⚠️ Mitigations are commitments — verification checks they're implemented.
 ✅ "Reset to null when project not in list" ❌ "Handle edge cases"
 
-## Pre-Mortem
-*Assume this plan failed. Most likely internal reasons (approach validity, not external deps):*
-1. **[Failure scenario]** (Task N) → Trigger: [observable condition during implementation]
-2. **[Failure scenario]** (Task N) → Trigger: [observable condition during implementation]
-
 ## Goal Verification
 ### Truths
 ### Artifacts
-### Key Links
 
 ## Progress Tracking
 - [ ] Task 1: [summary]

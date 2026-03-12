@@ -81,6 +81,8 @@ jobs:
 
       - name: Run Trivy vulnerability and secret scanner
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        env:
+          TRIVY_SKIP_VERSION_CHECK: "true"
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -88,7 +90,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
           ignore-unfixed: true
-          skip-dirs: '.venv,node_modules,console/node_modules,launcher,docs/site/api,console'
+          skip-dirs: '.venv,node_modules,console/node_modules,launcher,docs/site/api,console,docs/site/node_modules,docs/docusaurus/node_modules'
           trivyignores: '.trivyignore'
           format: 'table'
           output: trivy-results.txt
@@ -99,12 +101,9 @@ jobs:
           if [[ -s trivy-results.txt ]]; then
             {
               echo "### Security Scan Results"
-              echo "<details><summary>Click to expand Trivy output</summary>"
-              echo ""
               echo '```'
               cat trivy-results.txt
               echo '```'
-              echo "</details>"
             } >> $GITHUB_STEP_SUMMARY
           else
             echo "### Security Scan: No issues found" >> $GITHUB_STEP_SUMMARY

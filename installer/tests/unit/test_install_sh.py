@@ -62,15 +62,6 @@ def test_install_sh_is_executable_bash_script():
     assert content.startswith("#!/bin/bash"), "install.sh must start with bash shebang"
 
 
-def test_install_sh_has_devcontainer_support():
-    """Verify install.sh supports dev container mode."""
-    install_sh = Path(__file__).parent.parent.parent.parent / "install.sh"
-    content = install_sh.read_text()
-
-    assert "is_in_container" in content, "Must have container detection"
-    assert "setup_devcontainer" in content, "Must have devcontainer setup"
-    assert ".devcontainer" in content, "Must reference .devcontainer directory"
-
 
 def test_install_sh_uses_with_flags():
     """Verify install.sh uses --with flags for inline deps (no venv created)."""
@@ -90,14 +81,6 @@ def test_install_sh_uses_python_312():
     assert "--no-project" in content, "Must use --no-project to avoid modifying user's venv"
 
 
-def test_install_sh_auto_detects_devcontainer():
-    """Verify install.sh detects .devcontainer directory for container mode."""
-    install_sh = Path(__file__).parent.parent.parent.parent / "install.sh"
-    content = install_sh.read_text()
-
-    assert '[ -d ".devcontainer" ]' in content, "Must check for .devcontainer directory"
-    assert "Detected .devcontainer" in content, "Must inform user about detected .devcontainer"
-
 
 def test_install_sh_skips_prompt_on_restart():
     """Verify install.sh skips install mode prompt during auto-updates."""
@@ -116,87 +99,6 @@ def test_install_sh_no_global_install_mode():
     assert "save_install_mode" not in content, "Must not save install_mode globally"
     assert "get_saved_install_mode" not in content, "Must not read global install_mode"
 
-
-def test_install_sh_replaces_devcontainer_project_name():
-    """Verify install.sh has sed commands to replace pilot-shell with project name."""
-    install_sh = Path(__file__).parent.parent.parent.parent / "install.sh"
-    content = install_sh.read_text()
-
-    assert "PROJECT_SLUG=" in content, "Must generate PROJECT_SLUG"
-    assert "basename" in content, "Must use basename to get directory name"
-    assert "tr '[:upper:]' '[:lower:]'" in content, "Must convert to lowercase"
-
-    assert '"pilot-shell"' in content, "Must have pattern for quoted pilot-shell"
-    assert "${PROJECT_SLUG}" in content, "Must substitute PROJECT_SLUG"
-
-    assert "/workspaces/pilot-shell" in content, "Must have pattern for workspace path"
-
-
-def test_install_sh_preserves_github_url_in_devcontainer(tmp_path: Path):
-    """Verify string replacement preserves GitHub URLs while replacing project name."""
-    devcontainer_dir = tmp_path / ".devcontainer"
-    devcontainer_dir.mkdir()
-    devcontainer_json = devcontainer_dir / "devcontainer.json"
-    devcontainer_json.write_text("""{
-  "name": "pilot-shell",
-  "runArgs": ["--name", "pilot-shell"],
-  "workspaceFolder": "/workspaces/pilot-shell",
-  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/v5.0.6/install.sh | bash"
-}""")
-
-    project_slug = "my-cool-project"
-    content = devcontainer_json.read_text()
-    content = content.replace('"pilot-shell"', f'"{project_slug}"')
-    content = content.replace("/workspaces/pilot-shell", f"/workspaces/{project_slug}")
-    devcontainer_json.write_text(content)
-
-    result = devcontainer_json.read_text()
-
-    assert f'"name": "{project_slug}"' in result, "name field must be replaced"
-    assert f'"--name", "{project_slug}"' in result, "runArgs name must be replaced"
-    assert f'"/workspaces/{project_slug}"' in result, "workspaceFolder must be replaced"
-
-    assert "maxritter/pilot-shell/v5.0.6" in result, "GitHub URL must be preserved"
-
-
-def test_install_sh_sed_handles_special_project_names(tmp_path: Path):
-    """Verify project name slugification works with various formats."""
-    import re
-
-    def slugify(name: str) -> str:
-        """Convert project name to slug (lowercase, spaces/underscores to hyphens)."""
-        return re.sub(r"[ _]+", "-", name.lower())
-
-    test_cases = [
-        ("My Project", "my-project"),
-        ("My_Project", "my-project"),
-        ("MyProject", "myproject"),
-        ("my-project", "my-project"),
-        ("PROJECT", "project"),
-    ]
-
-    for project_name, expected_slug in test_cases:
-        devcontainer_dir = tmp_path / ".devcontainer"
-        devcontainer_dir.mkdir(exist_ok=True)
-        devcontainer_json = devcontainer_dir / "devcontainer.json"
-        devcontainer_json.write_text("""{
-  "name": "pilot-shell",
-  "workspaceFolder": "/workspaces/pilot-shell"
-}""")
-
-        project_slug = slugify(project_name)
-        assert project_slug == expected_slug, (
-            f"Slug for '{project_name}' should be '{expected_slug}', got '{project_slug}'"
-        )
-
-        content = devcontainer_json.read_text()
-        content = content.replace('"pilot-shell"', f'"{project_slug}"')
-        content = content.replace("/workspaces/pilot-shell", f"/workspaces/{project_slug}")
-        devcontainer_json.write_text(content)
-
-        content = devcontainer_json.read_text()
-        assert f'"name": "{project_slug}"' in content, f"Failed for project '{project_name}'"
-        assert f'"/workspaces/{project_slug}"' in content, f"Failed workspace for '{project_name}'"
 
 
 def test_install_sh_has_auto_version_fetch():
@@ -228,7 +130,7 @@ def test_install_sh_handles_api_failure():
 
 
 def test_install_sh_detects_native_windows():
-    """Verify install.sh detects native Windows (MINGW/MSYS/Cygwin) and offers WSL2 or Dev Container."""
+    """Verify install.sh detects native Windows (MINGW/MSYS/Cygwin) and directs to WSL2."""
     install_sh = Path(__file__).parent.parent.parent.parent / "install.sh"
     content = install_sh.read_text()
 
@@ -237,7 +139,6 @@ def test_install_sh_detects_native_windows():
     assert "MSYS" in content, "Must detect MSYS2"
     assert "CYGWIN" in content, "Must detect Cygwin"
     assert "WSL2" in content or "WSL" in content, "Must mention WSL2 as an option"
-    assert "Dev Container" in content, "Must mention Dev Container as an option"
 
 
 def test_install_sh_uses_redirect_for_version_detection():

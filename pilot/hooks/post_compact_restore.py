@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from _util import (
+from _lib.util import (
     get_session_plan_path,
     read_hook_stdin,
 )

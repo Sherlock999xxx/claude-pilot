@@ -18,24 +18,8 @@ class TestPrerequisitesStep:
         step = PrerequisitesStep()
         assert step.name == "prerequisites"
 
-    def test_prerequisites_step_skips_in_devcontainer(self):
-        """PrerequisitesStep.check returns True when in dev container (skip step)."""
-        from installer.context import InstallContext
-        from installer.steps.prerequisites import PrerequisitesStep
-        from installer.ui import Console
-
-        step = PrerequisitesStep()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            ctx = InstallContext(
-                project_dir=Path(tmpdir),
-                ui=Console(non_interactive=True),
-            )
-
-            with patch("installer.steps.prerequisites.is_in_devcontainer", return_value=True):
-                assert step.check(ctx) is True
-
-    def test_prerequisites_step_runs_when_not_in_devcontainer(self):
-        """PrerequisitesStep.check returns False when not in dev container."""
+    def test_prerequisites_step_runs_when_packages_missing(self):
+        """PrerequisitesStep.check returns False when packages are missing."""
         from installer.context import InstallContext
         from installer.steps.prerequisites import PrerequisitesStep
         from installer.ui import Console
@@ -48,10 +32,9 @@ class TestPrerequisitesStep:
                 ui=Console(non_interactive=True),
             )
 
-            with patch("installer.steps.prerequisites.is_in_devcontainer", return_value=False):
-                with patch("installer.steps.prerequisites.is_homebrew_available", return_value=True):
-                    with patch("installer.steps.prerequisites.command_exists", return_value=False):
-                        assert step.check(ctx) is False
+            with patch("installer.steps.prerequisites.is_homebrew_available", return_value=True):
+                with patch("installer.steps.prerequisites.command_exists", return_value=False):
+                    assert step.check(ctx) is False
 
     def test_prerequisites_step_skips_when_all_packages_installed(self):
         """PrerequisitesStep.check returns True when all packages already installed."""
@@ -67,29 +50,10 @@ class TestPrerequisitesStep:
                 ui=Console(non_interactive=True),
             )
 
-            with patch("installer.steps.prerequisites.is_in_devcontainer", return_value=False):
-                with patch("installer.steps.prerequisites.is_homebrew_available", return_value=True):
-                    with patch("installer.steps.prerequisites.command_exists", return_value=True):
-                        with patch("installer.steps.prerequisites._is_nvm_installed", return_value=True):
-                            assert step.check(ctx) is True
-
-    def test_prerequisites_step_runs_outside_devcontainer(self):
-        """PrerequisitesStep.check returns False (run) when not in dev container and packages missing."""
-        from installer.context import InstallContext
-        from installer.steps.prerequisites import PrerequisitesStep
-        from installer.ui import Console
-
-        step = PrerequisitesStep()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            ctx = InstallContext(
-                project_dir=Path(tmpdir),
-                ui=Console(non_interactive=True),
-            )
-
-            with patch("installer.steps.prerequisites.is_in_devcontainer", return_value=False):
-                with patch("installer.steps.prerequisites.is_homebrew_available", return_value=True):
-                    with patch("installer.steps.prerequisites.command_exists", return_value=False):
-                        assert step.check(ctx) is False
+            with patch("installer.steps.prerequisites.is_homebrew_available", return_value=True):
+                with patch("installer.steps.prerequisites.command_exists", return_value=True):
+                    with patch("installer.steps.prerequisites._is_nvm_installed", return_value=True):
+                        assert step.check(ctx) is True
 
 
 class TestPrerequisitesStepRun:

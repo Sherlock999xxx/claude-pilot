@@ -5,9 +5,7 @@ import ComparisonSection from "@/components/ComparisonSection";
 import WorkflowSteps from "@/components/WorkflowSteps";
 import WhatsInside from "@/components/WhatsInside";
 import ConsoleSection from "@/components/ConsoleSection";
-import TechStack from "@/components/TechStack";
 import DemoSection from "@/components/DemoSection";
-import TeamsDashboardSection from "@/components/TeamsDashboardSection";
 import PricingSection from "@/components/PricingSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import FAQSection from "@/components/FAQSection";
@@ -89,8 +87,6 @@ const Index = () => {
         <WorkflowSteps />
         <WhatsInside />
         <ConsoleSection />
-        <TechStack />
-        <TeamsDashboardSection />
         <PricingSection />
         <TestimonialsSection />
         <DemoSection />

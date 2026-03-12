@@ -1,12 +1,16 @@
 {
   "ignoreCommand": "bash vercel-build-check.sh",
-  "buildCommand": "npm run build",
+  "buildCommand": "bash build-all.sh",
   "outputDirectory": "dist",
-  "framework": "vite",
+  "framework": null,
   "trailingSlash": false,
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/docs/:path*",
+      "destination": "/docs/:path*"
+    },
+{
       "source": "/(.*)",
       "destination": "/"
     }
@@ -23,7 +27,7 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' http://localhost:* https://localhost:*" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-XSS-Protection", "value": "1; mode=block" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },

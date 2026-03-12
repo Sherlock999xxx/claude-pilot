@@ -14,7 +14,6 @@ from installer.platform_utils import (
     is_apt_available,
     is_dnf_available,
     is_homebrew_available,
-    is_in_devcontainer,
     is_linux,
     is_yum_available,
 )
@@ -310,12 +309,8 @@ class PrerequisitesStep(BaseStep):
         """Check if this step should be skipped.
 
         Returns True (skip) if:
-        - Running in a dev container
         - Homebrew is available AND all packages are already installed
         """
-        if is_in_devcontainer():
-            return True
-
         if not is_homebrew_available():
             return False
 

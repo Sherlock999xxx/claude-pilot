@@ -9,7 +9,7 @@ model: opus
 
 **Flow:** Read existing → Migrate → Quality audit → Explore → Compare → Sync project/MCP/skills → Discover rules/skills → Cross-check → Summary
 
-**Team sharing:** Use the Teams page in the Console dashboard to push/pull assets via sx.
+**Skill sharing:** Use the Share page in the Console dashboard to manage and sync skills via Skillshare.
 
 ---
 
@@ -38,7 +38,7 @@ Use `{slug}-` prefix on everything: `{slug}-project.md`, `{slug}-mcp-servers.md`
 
 **Custom rules** in `.claude/rules/`: `{slug}-project.md` (tech stack, structure), `{slug}-mcp-servers.md` (custom MCP servers), `{slug}-{pattern-name}.md` (tribal knowledge).
 
-**Custom skills** in `.claude/skills/{slug}-{name}/SKILL.md`: workflows, tool integrations, domain expertise.
+**Custom skills:** If `skillshare` is installed, use `skillshare new {slug}-{name} -p` (project) or `-g` (global), with `--into {category}` for organization. Run `skillshare sync` after creating. Without skillshare: create directly in `.claude/skills/{slug}-{name}/SKILL.md`.
 
 Use unique names (not `plan`, `implement`, `verify`, `standards-*`) for custom skills.
 
@@ -160,7 +160,7 @@ From the official Claude Code documentation — use these as the quality baselin
 
 1. Derive the project slug (see Phase 0 → Project Slug)
 2. `find .claude/rules/ -name '*.md' -not -name 'README.md' 2>/dev/null | sort` — read each rule file (including subdirectories)
-3. `ls -la .claude/skills/*/SKILL.md 2>/dev/null` — read each skill file
+3. Read skills from both locations: `ls -la .skillshare/skills/*/SKILL.md 2>/dev/null` then `ls -la .claude/skills/*/SKILL.md 2>/dev/null` — deduplicate by name (`.skillshare/` takes precedence)
 4. Check for legacy CLAUDE.md: `ls CLAUDE.md claude.md .claude.md 2>/dev/null` — read if found
 5. **Detect unscoped legacy files** — look for `project.md`, `mcp-servers.md`, or any rule/skill without the `{slug}-` prefix. Flag for migration in Phase 2.
 6. **Detect nested rule directories** — check for subdirectories within `.claude/rules/` (product/team structure per Phase 0 → Recommended Directory Structure). Map each subdirectory, its depth level (product vs team), and contents. Also check for sub-projects with their own `.claude/rules/` or `CLAUDE.md`.
@@ -475,15 +475,18 @@ Create/update `.claude/rules/{slug}-mcp-servers.md`:
 
 ## Phase 8: Sync Existing Skills
 
-For each skill from Phase 1:
+For each skill from Phase 1 (from both `.skillshare/skills/` and `.claude/skills/`):
 
 1. **Relevance:** Does the workflow/tool still exist? Has process changed?
 2. **Currency:** Steps accurate? APIs changed? Examples working?
 3. **Triggers:** Description still accurate for discovery?
+4. **Location:** If `skillshare` is installed and skill is in `.claude/skills/` but `.skillshare/skills/` exists, offer to move it to `.skillshare/skills/` (enables sharing via Skillshare)
 
 If updates needed: AskUserQuestion (multiSelect) with what changed and why. For each selected: update content, bump version (e.g., 1.0.0 → 1.0.1). Confirm each: "Yes, update it" | "Edit first" | "Skip this one".
 
 If obsolete: AskUserQuestion "Yes, remove it" | "Keep it" | "Update instead". If removing: delete the skill directory.
+
+**After any changes to `.skillshare/skills/`:** Run `skillshare sync -p` to sync updated skills to `.claude/skills/`.
 
 ## Phase 9: Discover New Rules
 
@@ -516,8 +519,10 @@ Skills are appropriate for: multi-step workflows, tool integrations, reusable sc
 
 1. Identify candidates from exploration: repeated workflows, complex tool usage, bundled scripts
 2. AskUserQuestion (multiSelect): which to create
-3. For each: invoke `Skill(skill="learn")` if available — otherwise create `.claude/skills/{slug}-{name}/SKILL.md` directly with frontmatter (`name`, `description`, optionally `user-invocable: true`)
-4. Verify: skill directory exists, SKILL.md has proper frontmatter
+3. **Create skill:** If `skillshare` is installed, use `skillshare new {slug}-{name} -p` (project) or `-g` (global), with `--into {category}` for subdirectories. Without skillshare: `mkdir -p .claude/skills/{slug}-{name}` and write SKILL.md directly.
+4. For each: invoke `Skill(skill="learn")` if available — otherwise write SKILL.md directly with frontmatter (`name`, `description`, `targets: [claude]`, optionally `user-invocable: true`)
+5. Verify: skill directory exists, SKILL.md has proper frontmatter
+6. **Sync (if skillshare available):** Run `skillshare sync -p` (project) or `skillshare sync -g` (global) to make new skills available to Claude. Without skillshare: skills in `.claude/skills/` are already in the target — no sync needed.
 
 ## Phase 11: Cross-Check
 
@@ -542,8 +547,9 @@ Report:
 - Quality audit: errors fixed, warnings addressed, suggestions applied, skipped
 - Rules: created, updated, unchanged (by directory level)
 - Path-scoping: team rules validated, violations fixed
-- Skills: created, updated, removed, unchanged
+- Skills: created, updated, removed, unchanged (note which are in `.skillshare/` vs `.claude/`)
+- Skillshare sync: ran `skillshare sync -p` (if `.skillshare/` used) | not needed
 - Cross-check: issues found and fixed (if any)
 - Probe: available / not available
 
-Then offer: "Share via Teams dashboard" (direct user to Console Teams page) | "Discover more standards" | "Create more skills" | "Done"
+Then offer: "Share via Share dashboard" (direct user to Console Share page at #/share) | "Discover more standards" | "Create more skills" | "Done"

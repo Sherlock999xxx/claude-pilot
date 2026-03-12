@@ -31,10 +31,6 @@ def has_nvidia_gpu() -> bool:
     return False
 
 
-def is_in_devcontainer() -> bool:
-    """Check if running inside a dev container."""
-    return Path("/.dockerenv").exists() or Path("/run/.containerenv").exists()
-
 
 def command_exists(command: str) -> bool:
     """Check if a command exists in PATH."""

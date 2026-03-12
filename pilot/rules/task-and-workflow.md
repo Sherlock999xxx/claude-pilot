@@ -60,29 +60,21 @@ When resuming same session (same `CLAUDE_CODE_TASK_LIST_ID`): run `TaskList` fir
 
 ---
 
-## Sub-Agent and Tool Usage
+## Tool Usage
 
-**Search:** See `research-tools.md` for the priority chain (Probe → Grep/Glob → Explore). Task agents are for multi-step *reasoning*, not search.
+### ⛔ Agent Tool — BANNED
 
-### /spec Verification Agents
+**NEVER use the Agent tool.** All sub-agent calls are blocked by hook and will be denied. Do the work directly using Probe CLI, Grep/Glob, Bash, and other built-in tools.
 
-| Phase | Agent (background) | `subagent_type` |
-|-------|-------------------|-----------------|
-| `spec-plan` 1.7 (all features) | plan-reviewer | `pilot:plan-reviewer` |
-| `spec-verify` 3.1, 3.4 (features only) | spec-reviewer | `pilot:spec-reviewer` |
-
-**Plan-reviewer runs by default** for all feature specs (can be disabled in Console Settings → Reviewers → Plan Review). **Spec-reviewer runs by default** during verification (can be disabled in Console Settings → Reviewers → Code Review). Both are enabled out of the box — disabling skips the agent launch step entirely.
-**Bugfixes skip sub-agents** in both planning and verification — the regression test proves the fix, the full suite proves preservation.
-
-The env vars `$PILOT_PLAN_REVIEWER_ENABLED` and `$PILOT_SPEC_REVIEWER_ENABLED` control this at runtime (set by the Pilot wrapper from config.json). When unset (non-Pilot invocations), agents run as usual.
+**Search:** See `research-tools.md` for the priority chain (Probe → Grep/Glob).
 
 ### Spec Workflow Toggles
 
-Three toggles in **Console Settings → Spec Workflow** control user interaction points. All default to `true` (enabled). When all three are disabled, `/spec` runs end-to-end without any user interaction.
+Three toggles in **Console Settings → Spec Workflow** control user interaction points. When all three are disabled, `/spec` runs end-to-end without any user interaction.
 
 | Toggle | Env Var | Default | When Disabled |
 |--------|---------|---------|---------------|
-| Worktree Support | `$PILOT_WORKTREE_ENABLED` | `true` | `/spec` never asks about worktree; always passes `--worktree=no` |
+| Worktree Support | `$PILOT_WORKTREE_ENABLED` | `false` | `/spec` never asks about worktree; always passes `--worktree=no` |
 | Ask Questions During Planning | `$PILOT_PLAN_QUESTIONS_ENABLED` | `true` | `spec-plan` and `spec-bugfix-plan` skip all `AskUserQuestion` calls; make autonomous default choices |
 | Plan Approval | `$PILOT_PLAN_APPROVAL_ENABLED` | `true` | Plan is auto-approved (`Approved: Yes`); implementation starts immediately |
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hook to block built-in WebSearch/WebFetch in favor of MCP alternatives."""
+"""Hook to block built-in WebSearch/WebFetch and all Agent sub-agent calls."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _util import pre_tool_use_deny
+from _lib.util import pre_tool_use_deny
 
 BLOCKS: dict[str, dict[str, str]] = {
     "WebSearch": {
@@ -21,11 +21,16 @@ BLOCKS: dict[str, dict[str, str]] = {
         "alternative": "Use ToolSearch to load mcp__plugin_pilot_web-fetch__fetch_url, then call it directly",
         "example": 'ToolSearch(query="+web-fetch fetch") then mcp__plugin_pilot_web-fetch__fetch_url(url="...")',
     },
+    "Agent": {
+        "message": "Agent tool is blocked — sub-agents waste tokens and duplicate work",
+        "alternative": "Use Probe CLI for search, Grep/Glob for patterns, Bash for commands. Do the work directly.",
+        "example": 'Bash(command=\'probe search "your query" ./ --max-results 5 --max-tokens 2000\')',
+    },
 }
 
 
 def run_tool_redirect() -> int:
-    """Block WebSearch/WebFetch, allow everything else."""
+    """Block WebSearch/WebFetch and Agent, allow everything else."""
     try:
         hook_data = json.load(sys.stdin)
     except (json.JSONDecodeError, OSError):

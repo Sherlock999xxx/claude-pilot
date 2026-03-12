@@ -1,4 +1,4 @@
-"""Tests for tool_redirect hook — blocks WebSearch/WebFetch."""
+"""Tests for tool_redirect hook — blocks WebSearch/WebFetch and Agent."""
 
 from __future__ import annotations
 
@@ -28,6 +28,18 @@ class TestBlockedTools:
     def test_blocks_web_fetch(self):
         assert _run_with_input("WebFetch", {"url": "https://example.com"}) == 2
 
+    def test_blocks_agent_explore(self):
+        assert _run_with_input("Agent", {"subagent_type": "Explore", "prompt": "find files"}) == 2
+
+    def test_blocks_agent_general_purpose(self):
+        assert _run_with_input("Agent", {"subagent_type": "general-purpose", "prompt": "research"}) == 2
+
+    def test_blocks_agent_without_subagent_type(self):
+        assert _run_with_input("Agent", {"prompt": "do something"}) == 2
+
+    def test_blocks_agent_plan(self):
+        assert _run_with_input("Agent", {"subagent_type": "Plan", "prompt": "plan impl"}) == 2
+
 
 class TestAllowedTools:
     """Tests for tools that should pass through."""
@@ -46,9 +58,6 @@ class TestAllowedTools:
 
     def test_allows_grep(self):
         assert _run_with_input("Grep", {"pattern": "where is config loaded"}) == 0
-
-    def test_allows_agent(self):
-        assert _run_with_input("Agent", {"subagent_type": "Explore"}) == 0
 
     def test_allows_task_create(self):
         assert _run_with_input("TaskCreate", {"subject": "test"}) == 0

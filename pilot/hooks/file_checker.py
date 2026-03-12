@@ -15,9 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from _checkers.go import check_go
 from _checkers.python import check_python
-from _checkers.typescript import TS_EXTENSIONS, check_typescript
-from _util import find_git_root, post_tool_use_context
-from tdd_enforcer import (
+from _checkers.tdd import (
     has_go_test_file,
     has_python_test_file,
     has_related_failing_test,
@@ -26,6 +24,8 @@ from tdd_enforcer import (
     is_trivial_edit,
     should_skip,
 )
+from _checkers.typescript import TS_EXTENSIONS, check_typescript
+from _lib.util import find_git_root, post_tool_use_context
 
 
 def _tdd_check(tool_name: str, tool_input: dict, file_path: str) -> str:

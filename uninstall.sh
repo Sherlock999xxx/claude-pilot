@@ -372,7 +372,7 @@ print_summary() {
 	echo "    - vtsls:          npm uninstall -g @vtsls/language-server typescript"
 	echo "    - prettier:       npm uninstall -g prettier"
 	echo "    - golangci-lint:  rm -f \$(go env GOPATH)/bin/golangci-lint"
-	echo "    - sx:             rm -f \$(which sx)"
+	echo "    - skillshare:     rm -f \$(which skillshare)"
 	echo "    - Python tools:   uv tool uninstall ruff basedpyright"
 	echo ""
 	echo "  Homebrew packages (git, node, bun, go, etc.) were left intact."

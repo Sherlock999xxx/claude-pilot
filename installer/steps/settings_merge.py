@@ -22,9 +22,7 @@ def merge_settings(
 
     Rules:
     - If no baseline exists (first install), incoming wins for all keys.
-    - For list fields (permissions.allow, permissions.deny): union of current + incoming,
-      minus any Pilot entries the user explicitly removed (in baseline but not in current).
-    - For dict fields (env, attribution, statusLine): merge keys individually.
+    - For dict fields (env, permissions, attribution, statusLine): merge keys individually.
       If user changed a key from baseline value, keep user's value. Otherwise update to incoming.
     - For scalar fields: if user changed from baseline, keep user's value. Otherwise update.
     """
@@ -43,12 +41,6 @@ def merge_settings(
                 result[key] = current[key]
         elif not in_current:
             result[key] = incoming[key]
-        elif key == "permissions":
-            result[key] = _merge_permissions(
-                baseline.get("permissions", {}) if baseline is not None else None,
-                current.get("permissions", {}),
-                incoming.get("permissions", {}),
-            )
         elif isinstance(incoming[key], dict) and isinstance(current[key], dict):
             result[key] = _merge_dict_field(
                 baseline.get(key, {}) if baseline is not None and in_baseline else None,
@@ -62,51 +54,6 @@ def merge_settings(
                 result[key] = incoming[key]
             else:
                 result[key] = current[key]
-
-    return result
-
-
-def _merge_permissions(
-    baseline: dict[str, Any] | None,
-    current: dict[str, Any],
-    incoming: dict[str, Any],
-) -> dict[str, Any]:
-    """Merge permissions with set-union for allow/deny lists, scalar merge for other keys.
-
-    - allow/deny lists: union of incoming + user-added, minus user-removed.
-    - Other keys (e.g., defaultMode): scalar merge — user changes win over Pilot defaults.
-    - Entries in incoming are always included (Pilot-managed).
-    - User-added entries (in current but not in baseline) are preserved.
-    - Entries the user explicitly removed (in baseline but not in current) stay removed.
-    """
-    result: dict[str, Any] = {}
-
-    for list_key in ("allow", "deny"):
-        incoming_set = set(incoming.get(list_key, []))
-        current_set = set(current.get(list_key, []))
-
-        if baseline is None:
-            merged = incoming_set | current_set
-        else:
-            baseline_set = set(baseline.get(list_key, []))
-            user_added = current_set - baseline_set
-            user_removed = baseline_set - current_set
-            merged = (incoming_set | user_added) - user_removed
-
-        result[list_key] = sorted(merged)
-
-    all_keys = set(incoming.keys()) | set(current.keys())
-    for key in all_keys - {"allow", "deny"}:
-        if key not in incoming:
-            result[key] = current[key]
-        elif key not in current:
-            result[key] = incoming[key]
-        elif baseline is None or key not in baseline:
-            result[key] = incoming[key]
-        elif current[key] == baseline[key]:
-            result[key] = incoming[key]
-        else:
-            result[key] = current[key]
 
     return result
 

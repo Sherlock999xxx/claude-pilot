@@ -39,6 +39,18 @@ const consoleSlides = [
     alt: "Usage view — daily costs, token charts, and model routing strategy",
     desc: "Daily token costs, model routing breakdown, and usage trends over time.",
   },
+  {
+    label: "Share",
+    src: "/console/share.png",
+    alt: "Share view — browse, edit, and manage skills, rules, commands, and agents",
+    desc: "Browse, edit, rename, and delete assets. Filter by scope and type. Push/pull to git remotes.",
+  },
+  {
+    label: "Changes",
+    src: "/console/changes.png",
+    alt: "Changes view — git diff, staged files, and commit management",
+    desc: "Git changes, staged files, and diff viewer with AI-generated commit messages.",
+  },
 ];
 
 const ConsoleSection = () => {
@@ -87,7 +99,7 @@ const ConsoleSection = () => {
             </div>
 
             {/* Thumbnail strip */}
-            <div className="grid grid-cols-6 gap-2 sm:gap-3 mt-3">
+            <div className="grid grid-cols-8 gap-2 sm:gap-3 mt-3">
               {consoleSlides.map((s, i) => (
                 <button
                   key={i}

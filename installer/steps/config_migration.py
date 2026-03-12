@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-CURRENT_CONFIG_VERSION = 2
+CURRENT_CONFIG_VERSION = 3
 
 # Old agent names removed in v7.1 (merged into plan-reviewer + spec-reviewer)
 _STALE_AGENT_KEYS = frozenset(
@@ -56,6 +56,9 @@ def migrate_model_config(config_path: Path | None = None) -> bool:
 
     if version < 2:
         modified = _migration_v2(raw) or modified
+
+    if version < 3:
+        modified = _migration_v3(raw) or modified
 
     raw["_configVersion"] = CURRENT_CONFIG_VERSION
     modified = True
@@ -117,9 +120,50 @@ def _migration_v2(raw: dict[str, Any]) -> bool:
     return modified
 
 
+def _migration_v3(raw: dict[str, Any]) -> bool:
+    """v2 → v3: Disable plan review, spec review, and worktree support by default.
+
+    These features consume significant tokens (~50k for plan review, ~100k for
+    spec review) as they run in separate context windows. Disable them for all
+    existing users — they can re-enable via Console Settings if desired.
+    """
+    modified = False
+
+    reviewer_agents = raw.get("reviewerAgents")
+    if isinstance(reviewer_agents, dict):
+        if reviewer_agents.get("planReviewer") is True:
+            reviewer_agents["planReviewer"] = False
+            modified = True
+        if reviewer_agents.get("specReviewer") is True:
+            reviewer_agents["specReviewer"] = False
+            modified = True
+        for key in ("planReviewer", "specReviewer"):
+            if key not in reviewer_agents:
+                reviewer_agents[key] = False
+                modified = True
+    else:
+        raw["reviewerAgents"] = {"planReviewer": False, "specReviewer": False}
+        modified = True
+
+    spec_workflow = raw.get("specWorkflow")
+    if isinstance(spec_workflow, dict):
+        if spec_workflow.get("worktreeSupport") is True:
+            spec_workflow["worktreeSupport"] = False
+            modified = True
+    else:
+        raw["specWorkflow"] = {
+            "worktreeSupport": False,
+            "askQuestionsDuringPlanning": True,
+            "planApproval": True,
+        }
+        modified = True
+
+    return modified
+
+
 def _write_atomic(path: Path, data: dict[str, Any]) -> None:
     """Write JSON atomically using temp file + os.rename."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = path.with_suffix(".json.tmp")
     tmp_path.write_text(json.dumps(data, indent=2))
-    os.rename(tmp_path, path)
+    os.replace(tmp_path, path)
