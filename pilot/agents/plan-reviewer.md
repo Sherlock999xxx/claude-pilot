@@ -45,6 +45,7 @@ Output ONLY valid JSON (no markdown wrapper):
 
 ```json
 {
+  "plan_file": "<path to the plan file that was reviewed>",
   "review_summary": "1-2 sentence summary",
   "alignment_score": "high | medium | low",
   "risk_level": "high | medium | low",

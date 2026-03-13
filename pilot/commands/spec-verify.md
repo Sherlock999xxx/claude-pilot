@@ -90,7 +90,9 @@ echo $PILOT_SESSION_ID
 
 Collect: changed files list, test framework constraints, runtime environment info, plan risks section.
 
-Output path: `~/.pilot/sessions/<session-id>/findings-spec-reviewer.json`
+**Derive plan slug** from the plan filename: strip the date prefix (`YYYY-MM-DD-`) and `.md` extension. Example: `2026-03-02-sku-builder-modal-cleanup.md` → `sku-builder-modal-cleanup`.
+
+Output path: `~/.pilot/sessions/<session-id>/findings-spec-reviewer-<plan-slug>.json`
 
 #### 3.1b: Launch
 
@@ -113,6 +115,7 @@ Task(
 
   Review implementation: compliance (plan match), quality (security, bugs, tests), goal (achievement, artifacts, wiring).
   Write findings JSON to output_path using Write tool.
+  IMPORTANT: Include the plan file path in your output JSON as the "plan_file" field.
   """
 )
 ```
@@ -157,6 +160,8 @@ for i in $(seq 1 50); do [ -f "$OUTPUT_PATH" ] && echo "READY" && break; sleep 1
 ```
 
 Then Read the file once. If not READY after ~8 min, re-launch synchronously.
+
+**⛔ Validate findings:** After reading the JSON, verify that the `plan_file` field matches the current plan path. If it doesn't match, the findings are stale from a previous `/spec` — delete the file, re-launch the reviewer, and wait again.
 
 #### Fix Findings
 

@@ -290,9 +290,11 @@ Type: Feature
 SESS_ID=$(echo $PILOT_SESSION_ID)
 ```
 
-Output path: `~/.pilot/sessions/<SESS_ID>/findings-plan-reviewer.json`
+**Derive plan slug** from the plan filename: strip the date prefix (`YYYY-MM-DD-`) and `.md` extension. Example: `2026-03-02-sku-builder-modal-cleanup.md` → `sku-builder-modal-cleanup`.
 
-**⛔ Delete stale findings before launching** (same path may exist from a previous `/spec` in this session):
+Output path: `~/.pilot/sessions/<SESS_ID>/findings-plan-reviewer-<plan-slug>.json`
+
+**⛔ Delete stale findings before launching** (previous run of the same plan may have left a file):
 
 ```bash
 rm -f "$OUTPUT_PATH"
@@ -310,6 +312,7 @@ Task(
 
   Review for alignment with requirements AND adversarial risks.
   Write findings JSON to output_path using Write tool.
+  IMPORTANT: Include the plan file path in your output JSON as the "plan_file" field.
   """
 )
 ```
@@ -324,6 +327,8 @@ for i in $(seq 1 30); do [ -f "$OUTPUT_PATH" ] && echo "READY" && break; sleep 1
 ```
 
 Then Read the file once. If not READY after 5 min, re-launch synchronously.
+
+**⛔ Validate findings:** After reading the JSON, verify that the `plan_file` field matches the current plan path. If it doesn't match, the findings are stale from a previous `/spec` — delete the file, re-launch the reviewer, and wait again.
 
 **Fix findings:** must_fix → should_fix immediately. Suggestions if reasonable. Proceed after all must_fix/should_fix resolved.
 

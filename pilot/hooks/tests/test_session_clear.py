@@ -9,10 +9,13 @@ from unittest.mock import patch
 import session_clear
 
 
-def test_removes_stale_findings_files(tmp_path: Path):
-    """Should delete reviewer findings from session directory."""
+def test_removes_stale_findings_files_with_slug(tmp_path: Path):
+    """Should delete slug-based reviewer findings from session directory."""
     session_dir = tmp_path / "sessions" / "1001"
     session_dir.mkdir(parents=True)
+    (session_dir / "findings-plan-reviewer-sku-builder-modal.json").write_text("{}")
+    (session_dir / "findings-spec-reviewer-sku-builder-modal.json").write_text("{}")
+    # Also old format (no slug) for backward compat
     (session_dir / "findings-plan-reviewer.json").write_text("{}")
     (session_dir / "findings-spec-reviewer.json").write_text("{}")
 
@@ -23,16 +26,42 @@ def test_removes_stale_findings_files(tmp_path: Path):
         result = session_clear.main()
 
     assert result == 0
+    assert not (session_dir / "findings-plan-reviewer-sku-builder-modal.json").exists()
+    assert not (session_dir / "findings-spec-reviewer-sku-builder-modal.json").exists()
     assert not (session_dir / "findings-plan-reviewer.json").exists()
     assert not (session_dir / "findings-spec-reviewer.json").exists()
 
 
+def test_removes_findings_from_multiple_specs(tmp_path: Path):
+    """Should delete findings from multiple /spec runs in the same session."""
+    session_dir = tmp_path / "sessions" / "1001"
+    session_dir.mkdir(parents=True)
+    # Two different specs ran in this session
+    (session_dir / "findings-plan-reviewer-dashboard-redesign.json").write_text("{}")
+    (session_dir / "findings-spec-reviewer-dashboard-redesign.json").write_text("{}")
+    (session_dir / "findings-plan-reviewer-webhook-ingestion.json").write_text("{}")
+    (session_dir / "findings-spec-reviewer-webhook-ingestion.json").write_text("{}")
+
+    with (
+        patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
+        patch.object(session_clear, "SESSIONS_DIR", tmp_path / "sessions"),
+    ):
+        result = session_clear.main()
+
+    assert result == 0
+    findings = list(session_dir.glob("findings-*.json"))
+    assert findings == [], f"Expected no findings files, found: {[f.name for f in findings]}"
+
+
 def test_removes_all_stale_state(tmp_path: Path):
-    """Should delete all stale session files."""
+    """Should delete all stale session files (fixed names + pattern-matched)."""
     session_dir = tmp_path / "sessions" / "1001"
     session_dir.mkdir(parents=True)
     for name in session_clear.STALE_FILES:
         (session_dir / name).write_text("stale")
+    # Also create pattern-matched findings files
+    (session_dir / "findings-plan-reviewer-some-plan.json").write_text("stale")
+    (session_dir / "findings-spec-reviewer-some-plan.json").write_text("stale")
 
     with (
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
@@ -43,6 +72,8 @@ def test_removes_all_stale_state(tmp_path: Path):
     assert result == 0
     for name in session_clear.STALE_FILES:
         assert not (session_dir / name).exists(), f"{name} should have been deleted"
+    findings = list(session_dir.glob("findings-*.json"))
+    assert findings == [], f"Expected no findings files, found: {[f.name for f in findings]}"
 
 
 def test_preserves_worktree_json(tmp_path: Path):

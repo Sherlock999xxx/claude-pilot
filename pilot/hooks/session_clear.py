@@ -14,14 +14,18 @@ from pathlib import Path
 SESSIONS_DIR = Path.home() / ".pilot" / "sessions"
 
 STALE_FILES = [
-    "findings-plan-reviewer.json",
-    "findings-spec-reviewer.json",
     "active_plan.json",
     "spec-stop-guard",
     "continuation.md",
     "context-cache.json",
     "context-pct.json",
     "pre-compact-state.json",
+]
+
+# Glob patterns for files with variable names (e.g. findings include plan slug)
+STALE_PATTERNS = [
+    "findings-plan-reviewer*.json",
+    "findings-spec-reviewer*.json",
 ]
 
 
@@ -58,6 +62,13 @@ def main() -> int:
             (session_dir / name).unlink(missing_ok=True)
         except OSError:
             pass
+
+    for pattern in STALE_PATTERNS:
+        for f in session_dir.glob(pattern):
+            try:
+                f.unlink(missing_ok=True)
+            except OSError:
+                pass
 
     _clean_task_list(session_id)
 
