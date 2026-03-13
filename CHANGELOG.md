@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.5.6] - 2026-03-13
+
+### Bug Fixes
+
+- Use IS_SANDBOX=1 instead of permission patching for root support
+
 ## [7.5.5] - 2026-03-13
 
 ### Bug Fixes
