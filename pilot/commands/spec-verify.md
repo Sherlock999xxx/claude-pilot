@@ -20,7 +20,7 @@ hooks:
 ## ⛔ KEY CONSTRAINTS
 
 1. **Run code review when enabled** — Step 3.1 launches `spec-reviewer` via `Task(subagent_type="pilot:spec-reviewer")` when `PILOT_SPEC_REVIEWER_ENABLED` is not `"false"` (read in Step 0). To disable, use Console Settings → Reviewers → Code Review toggle.
-2. **Only spec-reviewer** — Do NOT launch `plan-reviewer` during verification. Plan-reviewer reviews *plans* before implementation, not code. Running it here wastes tokens flagging plan-level concerns that were already addressed during implementation.
+2. **Only spec-reviewer — NEVER plan-reviewer** — Do NOT launch `plan-reviewer` during verification. Do NOT read or reference `findings-plan-reviewer-*.json` files — they are stale artifacts from the planning phase that were already addressed during implementation. If you encounter a plan-reviewer findings file, **ignore it completely**.
 3. **NO stopping** — Everything automatic. Never ask "Should I fix these?"
 4. **Fix ALL findings** — must_fix AND should_fix. No permission needed.
 5. **Code changes finish BEFORE runtime testing** — Phase A then Phase B.
@@ -96,10 +96,11 @@ Output path: `~/.pilot/sessions/<session-id>/findings-spec-reviewer-<plan-slug>.
 
 #### 3.1b: Launch
 
-**⛔ Delete stale findings before launching** (same path may exist from a previous `/spec` in this session):
+**⛔ Delete ALL stale findings before launching** — both spec-reviewer AND plan-reviewer files (plan-reviewer findings are stale artifacts from the planning phase):
 
 ```bash
-rm -f "$OUTPUT_PATH"
+rm -f ~/.pilot/sessions/$PILOT_SESSION_ID/findings-spec-reviewer-*.json
+rm -f ~/.pilot/sessions/$PILOT_SESSION_ID/findings-plan-reviewer-*.json
 ```
 
 ```

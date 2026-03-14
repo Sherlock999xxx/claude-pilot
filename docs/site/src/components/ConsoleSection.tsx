@@ -13,7 +13,7 @@ const consoleSlides = [
     label: "Settings",
     src: "/console/settings.png",
     alt: "Settings view — model selection per command, sub-agent, and session with defaults",
-    desc: "Choose models per command and sub-agent. Toggle extended context (1M tokens) globally.",
+    desc: "Choose models per command and sub-agent. Context window size auto-detected from your plan.",
   },
   {
     label: "Specifications",

@@ -27,5 +27,5 @@ Pilot automatically routes each phase to the right model. Rather than always usi
 - The result: better output at lower cost than running Opus everywhere
 
 :::tip Fully configurable
-Configure via the Pilot Shell Console Settings tab (`localhost:41777/#/settings`). Choose between Sonnet 4.6 and Opus 4.6 for the main session, each command, and each sub-agent independently. Enable the **Extended Context (1M)** toggle to switch all models to the 1M token context window simultaneously — useful for very large codebases. Requires Max 20x or Enterprise subscription.
+Configure via the Pilot Shell Console Settings tab (`localhost:41777/#/settings`). Choose between Sonnet 4.6 and Opus 4.6 for the main session, each command, and each sub-agent independently. Context window size (200K or 1M) is auto-detected from Claude Code based on your subscription plan — no manual configuration needed.
 :::

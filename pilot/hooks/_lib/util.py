@@ -26,30 +26,25 @@ FILE_LENGTH_CRITICAL = 1000
 _AUTOCOMPACT_BUFFER_TOKENS = 33_000
 
 
-def _read_model_from_config() -> str:
-    """Read user's main model from ~/.pilot/config.json.
+def _get_max_context_tokens() -> int:
+    """Return context window size, auto-detected from Claude Code statusline.
 
-    Intentionally standalone — hooks cannot import from launcher.
-    Returns 'sonnet' (default) on any error.
+    Reads context_window_size from the session cache (written by the statusline
+    formatter from Claude Code's reported window size). Falls back to 200K
+    if no cache exists yet (e.g., before the first statusline update).
     """
     try:
-        config_path = Path.home() / ".pilot" / "config.json"
-        data = json.loads(config_path.read_text())
-        model = data.get("model", "sonnet")
-        if isinstance(model, str) and model in ("sonnet", "sonnet[1m]", "opus", "opus[1m]"):
-            return model
+        session_id = os.environ.get("PILOT_SESSION_ID", "").strip()
+        if session_id:
+            cache_file = Path.home() / ".pilot" / "sessions" / session_id / "context-pct.json"
+            if cache_file.exists():
+                data = json.loads(cache_file.read_text())
+                window = data.get("context_window_size")
+                if isinstance(window, int) and window > 0:
+                    return window
     except Exception:
         pass
-    return "sonnet"
-
-
-def _get_max_context_tokens() -> int:
-    """Return context window size for the user's configured model.
-
-    Returns 1_000_000 for 1M variants, 200_000 otherwise.
-    """
-    model = _read_model_from_config()
-    return 1_000_000 if "[1m]" in model else 200_000
+    return 200_000
 
 
 def _get_compaction_threshold_pct() -> float:

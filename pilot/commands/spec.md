@@ -47,16 +47,22 @@ ELSE:
 - **Feature:** New functionality, enhancements, refactoring, migrations → build or change something
 - **Ambiguous:** Ask user (bundled with worktree question)
 
-### 0.1.2 User Questions (new plans only)
+### 0.1.2 Read Environment & User Questions (new plans only)
 
-**⛔ Check `$PILOT_WORKTREE_ENABLED` first** using `Bash("echo $PILOT_WORKTREE_ENABLED $PILOT_PLAN_QUESTIONS_ENABLED $PILOT_PLAN_APPROVAL_ENABLED")`. If `PILOT_WORKTREE_ENABLED` is `"false"`, skip the worktree question entirely and always pass `--worktree=no`.
+**⛔ MANDATORY FIRST STEP — read env vars before ANY user interaction:**
 
-**If `$PILOT_WORKTREE_ENABLED` is NOT `"false"`:**
-- If type is clear: Ask worktree only.
-- If ambiguous: Combine type + worktree in single AskUserQuestion (use combined options: "Bug fix, no worktree" / "Bug fix, yes worktree" / "Feature, no worktree" / "Feature, yes worktree").
+```bash
+echo "WORKTREE=$PILOT_WORKTREE_ENABLED QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
+```
 
-**If `$PILOT_WORKTREE_ENABLED` is `"false"` AND type is clear:** Skip AskUserQuestion entirely — invoke skill directly with `--worktree=no`.
-**If `$PILOT_WORKTREE_ENABLED` is `"false"` AND type is ambiguous:** Ask type only (no worktree choice), then invoke with `--worktree=no`.
+**⛔ When `WORKTREE` is `"false"`: NEVER mention worktree, NEVER ask about worktree, NEVER include worktree options.** Always pass `--worktree=no` silently.
+
+| WORKTREE | Type | Action |
+|----------|------|--------|
+| `false` | Clear | **Skip AskUserQuestion entirely** — invoke skill directly with `--worktree=no` |
+| `false` | Ambiguous | Ask type ONLY (no worktree options), then invoke with `--worktree=no` |
+| not `false` | Clear | Ask worktree only |
+| not `false` | Ambiguous | Combine type + worktree in single AskUserQuestion |
 
 ### 0.1.3 Invoke Skill and STOP
 

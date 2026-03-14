@@ -134,6 +134,7 @@ class TestIsThrottled:
         """Throttle returns False when context is high (never skip near compaction)."""
         cache_file = tmp_path / "context_cache.json"
         monkeypatch.setattr("context_monitor.get_session_cache_path", lambda: cache_file)
+        monkeypatch.setattr("context_monitor._get_max_context_tokens", lambda: 200_000)
 
         session_id = "test-session-123"
         cache_file.write_text(json.dumps({
@@ -199,6 +200,7 @@ class TestResolveContext:
         cache_file = tmp_path / "context_cache.json"
         monkeypatch.setattr("context_monitor.get_session_cache_path", lambda: cache_file)
         monkeypatch.setattr("context_monitor._read_statusline_context_pct", lambda: 45.0)
+        monkeypatch.setattr("context_monitor._get_max_context_tokens", lambda: 200_000)
 
         result = _resolve_context("test-session-123")
 
@@ -214,6 +216,7 @@ class TestResolveContext:
         cache_file = tmp_path / "context_cache.json"
         monkeypatch.setattr("context_monitor.get_session_cache_path", lambda: cache_file)
         monkeypatch.setattr("context_monitor._read_statusline_context_pct", lambda: 85.0)
+        monkeypatch.setattr("context_monitor._get_max_context_tokens", lambda: 200_000)
 
         session_id = "test-session-123"
         cache_file.write_text(json.dumps({

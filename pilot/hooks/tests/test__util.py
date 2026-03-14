@@ -27,86 +27,39 @@ from _lib.util import (
 )
 
 
-class TestReadModelFromConfig:
-    """Tests for _read_model_from_config()."""
-
-    def test_returns_model_from_config(self, tmp_path: Path) -> None:
-        from _lib.util import _read_model_from_config
-
-        config = tmp_path / ".pilot" / "config.json"
-        config.parent.mkdir(parents=True)
-        config.write_text(json.dumps({"model": "opus[1m]"}))
-
-        with patch("pathlib.Path.home", return_value=tmp_path):
-            result = _read_model_from_config()
-
-        assert result == "opus[1m]"
-
-    def test_returns_sonnet_default_when_config_missing(self, tmp_path: Path) -> None:
-        from _lib.util import _read_model_from_config
-
-        with patch("pathlib.Path.home", return_value=tmp_path):
-            result = _read_model_from_config()
-
-        assert result == "sonnet"
-
-    def test_returns_sonnet_for_unknown_model(self, tmp_path: Path) -> None:
-        from _lib.util import _read_model_from_config
-
-        config = tmp_path / ".pilot" / "config.json"
-        config.parent.mkdir(parents=True)
-        config.write_text(json.dumps({"model": "gpt-4"}))
-
-        with patch("pathlib.Path.home", return_value=tmp_path):
-            result = _read_model_from_config()
-
-        assert result == "sonnet"
-
-
 class TestGetMaxContextTokens:
     """Tests for _get_max_context_tokens()."""
 
-    def test_returns_200k_for_sonnet(self, tmp_path: Path) -> None:
+    @patch.dict("os.environ", {}, clear=True)
+    def test_returns_200k_without_cache(self) -> None:
         from _lib.util import _get_max_context_tokens
 
-        config = tmp_path / ".pilot" / "config.json"
-        config.parent.mkdir(parents=True)
-        config.write_text(json.dumps({"model": "sonnet"}))
-
-        with patch("pathlib.Path.home", return_value=tmp_path):
-            result = _get_max_context_tokens()
+        result = _get_max_context_tokens()
 
         assert result == 200_000
 
-    def test_returns_1m_for_sonnet_1m(self, tmp_path: Path) -> None:
+    def test_returns_1m_with_cache(self, tmp_path: Path) -> None:
         from _lib.util import _get_max_context_tokens
 
-        config = tmp_path / ".pilot" / "config.json"
-        config.parent.mkdir(parents=True)
-        config.write_text(json.dumps({"model": "sonnet[1m]"}))
+        session_id = "test-session-ctx"
+        cache_dir = tmp_path / ".pilot" / "sessions" / session_id
+        cache_dir.mkdir(parents=True)
+        cache_file = cache_dir / "context-pct.json"
+        cache_file.write_text(json.dumps({"context_window_size": 1_000_000}))
 
-        with patch("pathlib.Path.home", return_value=tmp_path):
+        with (
+            patch("pathlib.Path.home", return_value=tmp_path),
+            patch.dict("os.environ", {"PILOT_SESSION_ID": session_id}),
+        ):
             result = _get_max_context_tokens()
 
         assert result == 1_000_000
 
-    def test_returns_1m_for_opus_1m(self, tmp_path: Path) -> None:
+    @patch.dict("os.environ", {}, clear=True)
+    def test_returns_200k_when_no_session_id(self) -> None:
         from _lib.util import _get_max_context_tokens
 
-        config = tmp_path / ".pilot" / "config.json"
-        config.parent.mkdir(parents=True)
-        config.write_text(json.dumps({"model": "opus[1m]"}))
-
-        with patch("pathlib.Path.home", return_value=tmp_path):
-            result = _get_max_context_tokens()
-
-        assert result == 1_000_000
-
-    def test_returns_200k_when_config_missing(self, tmp_path: Path) -> None:
-        from _lib.util import _get_max_context_tokens
-
-        with patch("pathlib.Path.home", return_value=tmp_path):
-            result = _get_max_context_tokens()
+        result = _get_max_context_tokens()
 
         assert result == 200_000
 
@@ -114,26 +67,27 @@ class TestGetMaxContextTokens:
 class TestGetCompactionThresholdPct:
     """Tests for _get_compaction_threshold_pct()."""
 
-    def test_returns_83_5_for_200k_model(self, tmp_path: Path) -> None:
+    @patch.dict("os.environ", {}, clear=True)
+    def test_returns_83_5_for_200k_default(self) -> None:
         from _lib.util import _get_compaction_threshold_pct
 
-        config = tmp_path / ".pilot" / "config.json"
-        config.parent.mkdir(parents=True)
-        config.write_text(json.dumps({"model": "opus"}))
-
-        with patch("pathlib.Path.home", return_value=tmp_path):
-            result = _get_compaction_threshold_pct()
+        result = _get_compaction_threshold_pct()
 
         assert abs(result - 83.5) < 0.1
 
-    def test_returns_96_7_for_1m_model(self, tmp_path: Path) -> None:
+    def test_returns_96_7_for_1m_cache(self, tmp_path: Path) -> None:
         from _lib.util import _get_compaction_threshold_pct
 
-        config = tmp_path / ".pilot" / "config.json"
-        config.parent.mkdir(parents=True)
-        config.write_text(json.dumps({"model": "opus[1m]"}))
+        session_id = "test-session-compact"
+        cache_dir = tmp_path / ".pilot" / "sessions" / session_id
+        cache_dir.mkdir(parents=True)
+        cache_file = cache_dir / "context-pct.json"
+        cache_file.write_text(json.dumps({"context_window_size": 1_000_000}))
 
-        with patch("pathlib.Path.home", return_value=tmp_path):
+        with (
+            patch("pathlib.Path.home", return_value=tmp_path),
+            patch.dict("os.environ", {"PILOT_SESSION_ID": session_id}),
+        ):
             result = _get_compaction_threshold_pct()
 
         assert abs(result - 96.7) < 0.1

@@ -24,7 +24,7 @@ $ open http://localhost:41777
 | **Sessions** | Active and past sessions with observation counts, duration, and the ability to browse session context. |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet distribution), and usage trends over time. |
 | **Share** | Browse, edit, rename, and delete all assets (skills, rules, commands, agents). Filter by scope and type. Push/pull to git remotes. Markdown preview. |
-| **Settings** | Model selection per command and sub-agent (Sonnet 4.6 vs Opus 4.6), extended context toggle (1M tokens). |
+| **Settings** | Model selection per command and sub-agent (Sonnet 4.6 vs Opus 4.6). Context window size (200K or 1M) auto-detected from your plan. |
 | **Help** | Embedded documentation from pilot-shell.com — full technical reference without leaving the Console. |
 
 ## Smart Notifications via SSE
@@ -37,5 +37,5 @@ The Console sends real-time alerts via Server-Sent Events when Claude needs your
 - Session ended — completion summary with observation count
 
 :::info Settings tab
-Configure model selection per component — Planning (Opus), Implementation (Sonnet), Verification (Sonnet), each sub-agent independently. Enable the **Extended Context (1M)** toggle to use the 1M token context window across all models simultaneously. *Requires Max 20x or Enterprise subscription.*
+Configure model selection per component — Planning (Opus), Implementation (Sonnet), Verification (Sonnet), each sub-agent independently. Context window size (200K or 1M) is auto-detected from Claude Code based on your subscription plan.
 :::
