@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.5.9] - 2026-03-15
+
+### Bug Fixes
+
+- Integrate codebase-memory-mcp and sync all documentation
+
 ## [7.5.8] - 2026-03-15
 
 ### Bug Fixes
