@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.5.11] - 2026-03-16
+
+### Bug Fixes
+
+- Statusline restyle, session reactivation, memory cleanup, context cache preservation
+
 ## [7.5.10] - 2026-03-15
 
 ### Bug Fixes
