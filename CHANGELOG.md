@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.6.3] - 2026-03-18
+
+### Bug Fixes
+
+- Add 1M extended context toggle, config migration, and update skillshare extras docs
+
 ## [7.6.2] - 2026-03-18
 
 ### Bug Fixes
