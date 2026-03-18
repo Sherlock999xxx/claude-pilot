@@ -41,7 +41,7 @@ HOMEBREW_PACKAGES = [
 
 # Packages with pinned major versions — upgrading could jump to an incompatible version.
 # These are installed once and only upgraded manually.
-HOMEBREW_NO_UPGRADE_PACKAGES = {"python@3.12", "node@22", "nvm"}
+HOMEBREW_NO_UPGRADE_PACKAGES = {"python@3.12", "node@22", "nvm", "git", "gh"}
 
 
 def _is_nvm_installed() -> bool:
@@ -355,8 +355,13 @@ class PrerequisitesStep(BaseStep):
         Returns True (skip) if:
         - Homebrew is available AND all packages are installed AND none are outdated
         """
+        ui = ctx.ui
+
         if not is_homebrew_available():
             return False
+
+        if ui:
+            ui.info("Checking installed packages...")
 
         for package in HOMEBREW_PACKAGES:
             if package == "nvm":
@@ -369,8 +374,11 @@ class PrerequisitesStep(BaseStep):
 
         # All packages installed — check if any upgradeable ones are outdated
         upgradeable = [p for p in HOMEBREW_PACKAGES if p not in HOMEBREW_NO_UPGRADE_PACKAGES]
-        if _get_outdated_homebrew_packages(upgradeable):
-            return False
+        if upgradeable:
+            if ui:
+                ui.info("Checking for updates...")
+            if _get_outdated_homebrew_packages(upgradeable):
+                return False
 
         return True
 

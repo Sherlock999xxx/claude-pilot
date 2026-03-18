@@ -200,6 +200,8 @@ description: Implements the Project entity model with hierarchical relationships
 
 **⚠️ The Description Trap:** If description summarizes the workflow, Claude follows the short description as a shortcut instead of reading SKILL.md. Always describe trigger conditions, not process.
 
+**Make descriptions "pushy"** — Claude tends to undertrigger skills (not use them when they'd help). Combat this by being explicit about when to activate. Instead of "How to build a dashboard for internal data", write "How to build a dashboard for internal data. Use this skill whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any kind of data, even if they don't explicitly ask for a 'dashboard.'"
+
 ### Progressive Disclosure
 
 Three-level system — each level loads only when needed:
@@ -236,9 +238,17 @@ If validation fails, common issues include:
 Validate the data before proceeding.
 ```
 
+**Explain the why, not just the what** — Today's LLMs are smart. They have good theory of mind and respond better to reasoning than rigid commands. If you find yourself writing ALWAYS or NEVER in all caps, reframe and explain *why* the thing matters. "Use YYYY-MM-DD format because downstream parsers reject other formats" is more effective than "ALWAYS use YYYY-MM-DD format."
+
+**Keep the skill lean** — Remove instructions that aren't pulling their weight. If test runs show the model wasting time on unproductive steps, cut the instructions causing it. Every line should earn its context tokens.
+
 **Include error handling** — anticipate what goes wrong and provide fixes in the skill.
 
 **Put critical instructions at the top** — use `## Important` or `## Critical` headers. Repeat key points if needed — instructions buried at the bottom get ignored.
+
+**Generalize, don't overfit** — Skills are used across many different prompts. If you're testing with specific examples, make sure instructions generalize beyond those examples. Fiddly, overly specific changes that only fix one test case make the skill worse overall.
+
+**Bundle repeated patterns** — After test runs, review what the model did. If every test case independently wrote a similar helper script or took the same multi-step approach, that's a signal the skill should bundle that script in `scripts/`. Write it once — save every future invocation from reinventing the wheel.
 
 ---
 
@@ -359,6 +369,8 @@ fi
 
 **One skill = one purpose.** If the skill handles review AND testing AND deployment, split it.
 
+**Security:** Skills must not contain malware, exploit code, or content that could compromise system security. A skill's contents should not surprise the user in their intent. Don't create skills designed to facilitate unauthorized access or data exfiltration.
+
 ---
 
 ## Phase 4: Quality Gates
@@ -400,6 +412,125 @@ Should NOT trigger:
 ```
 
 **Debug approach:** Ask Claude "When would you use the [skill name] skill?" — Claude will quote the description back. Adjust based on what's missing.
+
+---
+
+## Phase 5: Test & Iterate
+
+**When to use:** Complex workflow and generative skills benefit from testing. Simple passive/instructional skills can skip this phase.
+
+### Step 1: Write Test Prompts
+
+Create 2-3 realistic prompts — things a real user would actually say. Be specific and include context, not abstract requests.
+
+```
+# Bad — too clean, too obvious
+"Create a chart from this data"
+
+# Good — realistic, with context and personality
+"ok so my boss sent me Q4_sales_final_v2.xlsx and wants me to add a profit
+margin column. Revenue is in column C, costs in D i think"
+```
+
+Share them with the user: "Here are a few test cases I'd like to try. Do these look right, or do you want to add more?"
+
+### Step 2: Run Tests with Subagents
+
+For each test prompt, spawn a subagent that has access to the skill and ask it to complete the task. Save outputs to a workspace directory.
+
+```
+Workspace structure:
+<skill-name>-workspace/
+└── iteration-1/
+    ├── test-1-descriptive-name/
+    │   ├── with-skill/      # Output from agent using the skill
+    │   └── without-skill/   # Baseline output (no skill)
+    └── test-2-descriptive-name/
+        ├── with-skill/
+        └── without-skill/
+```
+
+**With-skill run** — subagent prompt:
+```
+Complete this task using the [skill-name] skill at [path]:
+Task: [test prompt]
+Save outputs to: [workspace]/iteration-N/test-ID/with-skill/
+```
+
+**Baseline run** — same prompt, but tell the subagent to NOT use the skill. This reveals what value the skill actually adds.
+
+Launch all runs in parallel (with-skill AND baseline for each test case) to save time.
+
+### Step 3: Evaluate Results
+
+**Qualitative review:** Present outputs to the user side-by-side (with-skill vs baseline). Ask: "How do these compare? Anything the skill should do differently?"
+
+**Quantitative assertions (optional):** For skills with objectively verifiable outputs, define assertions:
+
+```json
+{
+  "test_id": 1,
+  "test_name": "quarterly-report-margins",
+  "prompt": "...",
+  "assertions": [
+    {"text": "Output file contains profit margin column", "type": "file_check"},
+    {"text": "Margins calculated as (revenue - cost) / revenue", "type": "correctness"},
+    {"text": "Handles negative margins without crashing", "type": "edge_case"}
+  ]
+}
+```
+
+Grade each assertion as pass/fail with evidence. Prefer programmatic checks (run a script) over eyeballing — scripts are faster, more reliable, and reusable across iterations.
+
+**Don't force assertions on subjective skills** — writing style, design quality, and creative output are better evaluated qualitatively by the user.
+
+**Blind comparison (optional):** For more rigorous evaluation, spawn an independent subagent that receives both outputs (with-skill and baseline) WITHOUT knowing which is which. Let it judge quality. This removes bias from the evaluation — if the independent judge consistently prefers the with-skill output, the skill is adding real value.
+
+### Step 4: Iterate
+
+Based on feedback:
+
+1. **Identify patterns** — What went wrong across test cases? Is it a structural issue or a wording issue?
+2. **Improve the skill** — Apply changes, focusing on generalizable fixes (not overfitting to test cases)
+3. **Rerun all tests** into `iteration-N+1/` — compare with previous iteration
+4. **Repeat** until the user is satisfied or feedback is all positive
+
+**Stop when:** User says it's good, all feedback is empty (everything looks fine), or improvements plateau.
+
+### Step 5: Description Optimization
+
+After the skill works well, optimize its triggering accuracy.
+
+**Generate 16-20 diverse trigger queries** — a mix of should-trigger and should-not-trigger:
+
+**Should-trigger queries (8-10):**
+- Different phrasings of the same intent (formal, casual, terse)
+- Cases where the user doesn't name the skill but clearly needs it
+- Uncommon use cases and edge cases
+- Queries where this skill competes with another but should win
+
+**Should-not-trigger queries (8-10):**
+- **Near-misses** — queries that share keywords but need something different
+- Adjacent domains with ambiguous phrasing
+- Queries that touch on something the skill does but in a context where another approach is better
+
+**Make queries realistic** — include file paths, personal context, abbreviations, typos, casual speech, varying lengths. Bad: `"Format this data"`. Good: `"i have this csv from marketing (campaigns_q4.csv) and need to pivot it so each campaign type is a column with spend as values, can you also add a total row at the bottom"`.
+
+**How skill triggering works:** Skills appear in Claude's `available_skills` list with their name + description. Claude decides whether to consult a skill based on that description alone. Important: Claude only consults skills for tasks it can't easily handle on its own — simple one-step queries like "read this file" won't trigger a skill even if the description matches, because Claude can handle them directly. Your test queries should be substantive enough that Claude would actually benefit from consulting a skill.
+
+**Test triggering accuracy:**
+
+```bash
+# For each query, test if Claude would trigger the skill
+# Run in a new session or use claude -p (pipe mode)
+echo "<test query>" | claude -p "Would you use the [skill-name] skill for this request? Answer only YES or NO."
+```
+
+**Iterate on the description** based on mismatches:
+- Should-trigger but didn't → add relevant trigger phrases/scenarios to description
+- Shouldn't-trigger but did → add "Do NOT use for..." exclusions, narrow the scope
+
+Run 2-3 iterations. If available, split queries 60/40 into train/test sets — optimize on train, validate on test to avoid overfitting the description to your specific queries.
 
 ---
 
