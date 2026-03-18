@@ -2,6 +2,16 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.6.1] - 2026-03-18
+
+### Bug Fixes
+
+- Add Remote Control documentation and installer improvements
+
+### Miscellaneous
+
+- Updated Demo Gif with Latest Changes
+
 ## [7.6.0] - 2026-03-16
 
 ### Features
