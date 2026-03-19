@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.7.0] - 2026-03-19
+
+### Features
+
+- Redesign extensions page with color-coded categories, project deletion, and console improvements 
+
 ## [7.6.5] - 2026-03-18
 
 ### Bug Fixes
