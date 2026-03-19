@@ -20,10 +20,10 @@ const HeroSection = () => {
             <span className="whitespace-nowrap">for Claude Code.</span>
           </p>
           <p className="text-muted-foreground text-[11px] xs:text-xs sm:text-sm md:text-base max-w-[90%] xs:max-w-xl sm:max-w-2xl mx-auto mt-1.5 leading-relaxed">
-            Start a task, grab a coffee, check progress from your phone.
+            From requirement to production-grade code. Planned, tested, verified.
           </p>
           <p className="text-muted-foreground/70 text-[10px] xs:text-xs sm:text-sm md:text-base max-w-[90%] xs:max-w-xl sm:max-w-2xl mx-auto mt-1.5 leading-relaxed">
-            Tests enforced. Context preserved. Quality automated.
+            Tests enforced. Context optimized. Quality automated.
           </p>
         </div>
 
@@ -91,9 +91,6 @@ const HeroSection = () => {
           </Badge>
           <Badge variant="secondary" className="text-[10px] xs:text-xs">
             Reusable Skills
-          </Badge>
-          <Badge variant="secondary" className="text-[10px] xs:text-xs">
-            Remote Control
           </Badge>
         </div>
 

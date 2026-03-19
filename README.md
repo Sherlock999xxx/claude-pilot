@@ -6,8 +6,8 @@
 
 ### Claude Code is powerful. Pilot Shell makes it reliable.
 
-Start a task, grab a coffee, check progress from your phone.</br>
-**Tests enforced. Context preserved. Quality automated. Controllable from anywhere.**
+From requirement to production-grade code. Planned, tested, verified.</br>
+**Tests enforced. Context optimized. Quality automated.**
 
 [![Stars](https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&color=F59E0B)](https://github.com/maxritter/pilot-shell/stargazers)
 [![Star History](https://img.shields.io/badge/Star_History-chart-8B5CF6)](https://star-history.com/#maxritter/pilot-shell&Date)

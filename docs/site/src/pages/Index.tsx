@@ -19,7 +19,7 @@ const Index = () => {
     name: "Pilot Shell",
     url: "https://pilot-shell.com",
     description:
-      "The professional development environment for Claude Code. Start a task, grab a coffee, come back to production-grade code. Tests enforced, context preserved, quality automated.",
+      "The professional development environment for Claude Code. From requirement to production-grade code. Planned, tested, verified. Tests enforced, Context optimized, quality automated.",
     publisher: {
       "@type": "Organization",
       name: "Pilot Shell",
@@ -72,7 +72,7 @@ const Index = () => {
     <>
       <SEO
         title="Pilot Shell - Claude Code is powerful. Pilot Shell makes it reliable."
-        description="The professional development environment for Claude Code. Start a task, grab a coffee, come back to production-grade code. Tests enforced, context preserved, quality automated."
+        description="The professional development environment for Claude Code. From requirement to production-grade code. Planned, tested, verified. Tests enforced, Context optimized, quality automated."
         structuredData={[
           websiteStructuredData,
           breadcrumbStructuredData,
