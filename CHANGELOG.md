@@ -2,6 +2,16 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.7.1] - 2026-03-20
+
+### Bug Fixes
+
+- Add APM format support for team remote extensions, fix category counts, edit modal height, remote content loading, and team gate
+
+### Miscellaneous
+
+- Updated Website and Readme
+
 ## [7.7.0] - 2026-03-19
 
 ### Features
