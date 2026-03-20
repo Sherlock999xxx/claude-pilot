@@ -34,7 +34,7 @@ cd your-project && pilot
 |----------|-----------|
 | **[Getting Started](/docs/getting-started/prerequisites)** | Prerequisites, one-command installation |
 | **[Workflows](/docs/workflows/setup-rules)** | `/setup-rules`, `/spec`, Quick Mode, `/create-skill` |
-| **[Features](/docs/features/console)** | Pilot Console, statusline, model routing, rules, context preservation, remote control, hooks, extensions, Pilot CLI, MCP servers, language servers, open-source tools |
+| **[Features](/docs/features/console)** | Pilot Console, statusline, model routing, rules, context optimization, remote control, hooks, extensions, Pilot CLI, MCP servers, language servers, open-source tools |
 
 ## Key Commands
 

@@ -21,7 +21,7 @@ Rules load automatically at session start — they're enforced standards, not su
 ### Development Practices (3 rules)
 
 - `development-practices.md` — Project policies, systematic debugging, git rules
-- `context-management.md` — Auto-compaction and context preservation
+- `context-management.md` — Context optimization and compaction resilience
 - `code-review-reception.md` — How to receive and act on code review feedback
 
 ### Tools (3 rules)

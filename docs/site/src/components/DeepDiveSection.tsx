@@ -258,7 +258,7 @@ const DeepDiveSection = () => {
             ))}
           </div>
 
-          {/* Context Preservation — the hooks working together */}
+          {/* Context Optimization — keeping context lean */}
           <div className="mt-6 rounded-lg p-5 border border-violet-400/20 bg-gradient-to-r from-violet-500/5 via-sky-500/5 to-violet-500/5">
             <div className="flex items-start gap-4">
               <div className="w-9 h-9 bg-violet-400/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -266,15 +266,17 @@ const DeepDiveSection = () => {
               </div>
               <div>
                 <h4 className="font-semibold text-foreground text-sm mb-1">
-                  Seamless Context Preservation
+                  Context Optimization
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  These hooks form a closed loop. When compaction fires,{" "}
-                  <span className="text-violet-400">PreCompact</span> captures
-                  your active plan, task list, and key decisions to persistent
-                  memory. <span className="text-sky-400">SessionStart</span>{" "}
-                  restores everything afterward — work continues exactly where
-                  it left off. No progress lost, no manual intervention.
+                  These hooks keep your context lean.{" "}
+                  <span className="text-violet-400">RTK</span> compresses tool
+                  output by 60–90%. Rules load only for matching file types.
+                  Skills use progressive disclosure — frontmatter always,
+                  full content on demand. When compaction does fire,{" "}
+                  <span className="text-sky-400">PreCompact</span> captures
+                  state and <span className="text-sky-400">SessionStart</span>{" "}
+                  restores it — no progress lost.
                 </p>
               </div>
             </div>

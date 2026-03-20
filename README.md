@@ -180,6 +180,8 @@ Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
                                             └── Loop──┘
 ```
 
+<img src="docs/img/specifications.png" alt="Pilot Shell Console — Specifications" width="700">
+
 <details>
 <summary><b>Feature Mode</b></summary>
 
@@ -277,12 +279,12 @@ pilot
 
 ### Extensions
 
-Create your own rules, commands, skills, and agents — all plain markdown files in `.claude/`. Extensions live either in your project's `.claude/` directory or globally in `~/.claude/`.
+Rules, commands, skills, and agents — all plain markdown files in `.claude/` (project) or `~/.claude/` (global). The Console Extensions page lets you browse, edit, compare, and share everything from one place. Team sharing supports [APM](https://github.com/microsoft/apm) format for cross-tool compatibility.
+
+<img src="docs/img/extensions.png" alt="Pilot Shell Console — Extensions" width="700">
 
 <details>
-<summary><b>Extension types</b></summary>
-
-**Create extensions in your project:**
+<summary><b>Extension categories</b></summary>
 
 | Extension    | Location            | When it loads                               |
 | ------------ | ------------------- | ------------------------------------------- |
@@ -291,51 +293,39 @@ Create your own rules, commands, skills, and agents — all plain markdown files
 | **Commands** | `.claude/commands/` | On demand via `/command-name`               |
 | **Agents**   | `.claude/agents/`   | Spawned as sub-agents for specialized tasks |
 
-Use `/setup-rules` to auto-generate rules from your codebase. Use `/create-skill` to capture workflows as reusable skills. For monorepos, organize rules in subdirectories by team with `paths` frontmatter to scope by file type.
-
-**Global vs Project scope:** Extensions in `.claude/` are project-specific (commit them so teammates get them on `git clone`). Extensions in `~/.claude/` are personal and available across all your projects.
-
-**Team sharing (Team tier):** Connect a git repository to share extensions across your team. Push local extensions to the remote, pull remote ones to your machine, and compare versions with a built-in diff view. Supports subfolder paths for organized team repos. Optional [APM format](https://microsoft.github.io/apm/introduction/key-concepts/) makes your remote installable via `apm install` for cross-tool compatibility (Copilot, Cursor, OpenCode).
-
-**Plugin extensions:** Installed Claude Code plugins and their extensions (commands, skills, agents) are automatically discovered and shown in the Extensions page as read-only items.
-
-Manage all extensions from the **Console Extensions page** — view, edit, rename, delete, move between scopes, compare diffs, and push/pull from a connected team remote.
+Use `/setup-rules` to auto-generate rules from your codebase. Use `/create-skill` to capture workflows as reusable skills.
 
 </details>
 
-### Remote Control
+<details>
+<summary><b>Scopes: Global, Project, Plugin</b></summary>
 
-Control your Pilot Shell sessions from anywhere — your phone, tablet, or any browser. Start a `/spec` task at your desk, then monitor and steer it from the couch.
+**Project** extensions live in `.claude/` — commit them so teammates get them on `git clone`. **Global** extensions live in `~/.claude/` — personal and available across all projects. Move extensions between scopes with one click.
+
+**Plugin** extensions come from installed Claude Code plugins (`claude plugin install <name>`). They appear as read-only items — visible but not editable.
+
+</details>
 
 <details>
-<summary><b>Setup and usage</b></summary>
+<summary><b>Team sharing & APM (Team tier)</b></summary>
 
-**Prerequisite:** [Remote Control](https://youtu.be/Ko7_tC1fMMM?si=kWDzYiQvxlkZTrRK) requires the native install of Claude Code (not the npm version). If you have the npm version installed, uninstall it first:
+Connect a git repository to share extensions across your team:
 
-```bash
-npm uninstall -g @anthropic-ai/claude-code   # Remove npm version if installed
-curl -fsSL https://claude.ai/install.sh | bash  # Install native version
-```
+- **Push** local extensions to the team remote
+- **Pull** remote extensions to your machine (global or project scope)
+- **Compare** local vs remote with a built-in side-by-side diff view
+- **Conflict detection** — when local and remote differ, choose which version to keep
 
-**Activate Remote Control:**
+**APM format** — check one box and your remote becomes an [APM package](https://microsoft.github.io/apm/introduction/key-concepts/), directly installable via `apm install owner/repo` by anyone using Copilot, Cursor, OpenCode, or Claude. Extensions are automatically converted to APM conventions on push:
 
-| Method             | How                                                                                   |
-| ------------------ | ------------------------------------------------------------------------------------- |
-| **Single session** | Type `/remote-control` inside any Pilot Shell session                                 |
-| **All sessions**   | Run `/config` in Claude Code → set "Enable Remote Control for all sessions" to `true` |
+| Pilot Shell | APM Remote |
+| --- | --- |
+| `rules/my-rule.md` | `instructions/my-rule.instructions.md` |
+| `commands/my-cmd.md` | `prompts/my-cmd.prompt.md` |
+| `skills/my-skill/SKILL.md` | `skills/my-skill/SKILL.md` |
+| `agents/my-agent.md` | `agents/my-agent.agent.md` |
 
-Once active, open the **Claude Mobile App** (iOS/Android) → **Code** tab. Your Pilot Shell session appears there with all rules, hooks, and MCP servers — the full Pilot Shell experience, from your phone. Your computer must stay awake for the connection to remain active — on macOS, use [Amphetamine](https://apps.apple.com/de/app/amphetamine/id937984704) to keep your Mac awake with the display off.
-
-**Start sessions via SSH from your phone:**
-
-The above assumes you start sessions via `pilot` on your computer first. To also **start new sessions from your phone**:
-
-1. Install [Termius](https://termius.com/) on your **mobile phone** (not your computer)
-2. Connect via SSH to your computer and run `pilot` in any project directory
-
-**macOS sleep support:** Turn on **Remote Login** in macOS Settings → General → Sharing → Advanced → Remote Login. This lets you SSH into your Mac even while it's sleeping.
-
-**Outside your home network:** Install [Tailscale](https://tailscale.com/) on both your computer and phone to create a VPN tunnel. This is only needed for the SSH approach — Remote Control via the Claude App works everywhere without extra setup.
+APM-compatible frontmatter is injected automatically. An `apm.yml` manifest is generated. Toggling APM on/off migrates existing extensions in a single commit.
 
 </details>
 
@@ -349,206 +339,17 @@ A full-stack project — created from **scratch with a single prompt**, then ext
 
 ## Under the Hood
 
-### The Hooks Pipeline
+For full details on every component, see the **[Documentation](https://pilot-shell.com/docs/)**.
 
-Hooks fire automatically across the entire lifecycle — formatting, linting, type checking, TDD enforcement, context preservation, and memory capture. Every file edit triggers quality checks. Every session start restores state. Every session end persists context.
-
-<details>
-<summary><b>All hooks by lifecycle event</b></summary>
-
-#### SessionStart (on startup, clear, or compact)
-
-| Hook                      | Type     | What it does                                                                          |
-| ------------------------- | -------- | ------------------------------------------------------------------------------------- |
-| Memory loader             | Blocking | Loads persistent context from Pilot Shell Console memory                              |
-| `post_compact_restore.py` | Blocking | After auto-compaction: re-injects active plan, task state, and context                |
-| `session_clear.py`        | Blocking | On /clear: resets session state (spec artifacts, task list, caches) for a clean start |
-| Session tracker           | Async    | Initializes user message tracking for the session                                     |
-
-#### UserPromptSubmit (when the user sends a message)
-
-| Hook                 | Type     | What it does                                                          |
-| -------------------- | -------- | --------------------------------------------------------------------- |
-| `spec_mode_guard.py` | Blocking | Blocks `/spec` in plan mode, warns when not in bypassPermissions mode |
-| Session initializer  | Async    | Registers the session with the Console worker daemon on first message |
-
-#### PreToolUse (before Bash, search, web, or agent tools)
-
-| Hook                  | Type     | What it does                                                                                                                                      |
-| --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tool_redirect.py`    | Blocking | Blocks WebSearch/WebFetch (MCP alternatives exist), Explore agent (use Probe + codebase-memory-mcp), EnterPlanMode/ExitPlanMode (/spec conflict). |
-| `tool_token_saver.py` | Blocking | Rewrites Bash commands via RTK for token savings (60–90% reduction on dev operations).                                                            |
-
-#### PostToolUse (after file edits, searches, and other tool calls)
-
-| Hook                 | Type         | What it does                                                                                                                                                   |
-| -------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `file_checker.py`    | Blocking     | Quality checks: Python (ruff), TypeScript (ESLint), Go (go vet + golangci-lint). Also warns when implementation files are edited without a failing test (TDD). |
-| `context_monitor.py` | Non-blocking | Tracks context usage 0-100% with warnings as compaction approaches.                                                                                            |
-| Memory observer      | Async        | Captures development observations to persistent memory.                                                                                                        |
-
-#### PreCompact (before auto-compaction)
-
-| Hook             | Type     | What it does                                                                                                   |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `pre_compact.py` | Blocking | Captures Pilot Shell state (active plan, task list, key context) to persistent memory before compaction fires. |
-
-#### Stop (when Claude tries to finish)
-
-| Hook                 | Type     | What it does                                                                                                                               |
-| -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `spec_stop_guard.py` | Blocking | If an active spec exists with PENDING or COMPLETE status, **blocks stopping**. Forces verification to complete before the session can end. |
-| Session summarizer   | Async    | Saves session observations to persistent memory for future sessions.                                                                       |
-
-Additionally, `spec_plan_validator.py` and `spec_verify_validator.py` run as command-scoped Stop hooks during `/spec` phases — they verify plan creation and VERIFIED status respectively.
-
-#### SessionEnd (when the session closes)
-
-| Hook             | Type     | What it does                                                                                                   |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `session_end.py` | Blocking | Stops the worker daemon when no other Pilot Shell sessions are active. Sends real-time dashboard notification. |
-
-</details>
-
-### Context Preservation
-
-Pilot Shell preserves context automatically across compaction boundaries. Before compaction fires, hooks capture the active plan, task list, and key decisions to persistent memory. After compaction, hooks restore everything — work continues exactly where it left off. Multiple sessions can run in parallel on the same project without interference.
-
-<details>
-<summary><b>How the effective context display works</b></summary>
-
-Claude Code reserves ~16.5% of the context window as a compaction buffer, triggering auto-compaction at ~83.5% raw usage. Pilot Shell rescales this to an **effective 0–100% range** so the status bar fills naturally to 100% right before compaction fires. A `▓` buffer indicator at the end of the bar shows the reserved zone. The context monitor warns at ~80% effective (informational) and ~90%+ effective (caution) — no confusing raw percentages.
-
-</details>
-
-### Smart Model Routing
-
-Opus for planning — where reasoning quality matters most. Sonnet for implementation and verification — where a clear spec makes fast execution predictable. All model assignments are configurable per-component via the Pilot Shell Console settings.
-
-<details>
-<summary><b>Phase-by-phase breakdown</b></summary>
-
-| Phase                 | Default | Why                                                                                                                                                                                                                 |
-| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Planning**          | Opus    | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation of everything.                                                                         |
-| **Plan Verification** | Sonnet  | The plan-reviewer sub-agent validates completeness and challenges assumptions on every feature spec. _(enabled by default — disable in Console Settings → Reviewers)_                                               |
-| **Implementation**    | Sonnet  | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec.                                                                     |
-| **Code Verification** | Sonnet  | The unified spec-reviewer agent handles deep code review (compliance + quality + goal). The orchestrator runs mechanical checks and applies fixes. _(enabled by default — disable in Console Settings → Reviewers)_ |
-
-Choose between Sonnet 4.6 and Opus 4.6 for the main session, each command, and sub-agents. Context window size (200K or 1M) is **auto-detected from Claude Code** based on your subscription plan — no manual configuration needed. 1M context requires a Max (20x) or Enterprise subscription.
-
-</details>
-
-### Built-in Rules & Standards
-
-Production-tested best practices loaded into every session. Core rules cover workflow, testing, verification, debugging, and tools. Coding standards activate conditionally by file type. These aren't suggestions, they're enforced.
-
-<details>
-<summary><b>Core Workflow</b></summary>
-
-- `task-and-workflow.md` — Task management, /spec orchestration, deviation handling
-- `testing.md` — TDD workflow, test strategy, coverage requirements
-- `verification.md` — Execution verification, completion requirements
-
-</details>
-
-<details>
-<summary><b>Development Practices</b></summary>
-
-- `development-practices.md` — Project policies, debugging methodology, git rules
-- `context-management.md` — Auto-compaction and context preservation
-- `code-review-reception.md` — How to receive and act on code review feedback
-
-</details>
-
-<details>
-<summary><b>Tools</b></summary>
-
-- `cli-tools.md` — Pilot CLI, Probe CLI semantic search, RTK token optimization
-- `playwright-cli.md` — Browser automation for E2E UI testing
-- `mcp-servers.md` — MCP server reference and tool selection guidance
-
-</details>
-
-<details>
-<summary><b>Coding Standards (activated by file type)</b></summary>
-
-| Standard   | Activates On                                      | Coverage                                                |
-| ---------- | ------------------------------------------------- | ------------------------------------------------------- |
-| Python     | `*.py`                                            | uv, pytest, ruff, basedpyright, type hints              |
-| TypeScript | `*.ts`, `*.tsx`, `*.js`, `*.jsx`                  | npm/pnpm, Jest, ESLint, Prettier, React patterns        |
-| Go         | `*.go`                                            | Modules, testing, formatting, error handling            |
-| Frontend   | `*.tsx`, `*.jsx`, `*.html`, `*.vue`, `*.css`      | Components, CSS, accessibility, responsive design       |
-| Backend    | `**/models/**`, `**/routes/**`, `**/api/**`, etc. | API design, data models, query optimization, migrations |
-
-</details>
-
-### MCP Servers
-
-MCP servers provide external context in every session — library docs, persistent memory, web search, GitHub code search, web page fetching, and code intelligence.
-
-<details>
-<summary><b>All servers</b></summary>
-
-| Server              | Purpose                                                                   |
-| ------------------- | ------------------------------------------------------------------------- |
-| **context7**        | Library documentation lookup — get API docs for any dependency            |
-| **mem-search**      | Persistent memory search — recall context from past sessions              |
-| **web-search**      | Web search via DuckDuckGo, Bing, and Exa                                  |
-| **grep-mcp**        | GitHub code search — find real-world usage patterns across repos          |
-| **web-fetch**       | Web page fetching — read documentation, APIs, references                  |
-| **codebase-memory** | Code knowledge graph — call tracing, impact analysis, dead code detection |
-
-</details>
-
-### Language Servers (LSP)
-
-Real-time diagnostics and go-to-definition for Python (basedpyright), TypeScript (vtsls), and Go (gopls). Auto-installed, auto-configured via `.lsp.json`, and auto-restart on crash.
-
-### Pilot Shell CLI
-
-The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing, and context. Run `pilot` or `ccp` to start Claude with Pilot Shell enhancements. Most commands support `--json` for structured output.
-
-<details>
-<summary><b>Session & Context</b></summary>
-
-| Command                               | Purpose                                                                    |
-| ------------------------------------- | -------------------------------------------------------------------------- |
-| `pilot`                               | Start Claude with Pilot Shell enhancements, auto-update, and license check |
-| `pilot run [args...]`                 | Same as above, with optional flags (e.g., `--skip-update-check`)           |
-| `pilot check-context --json`          | Get current context usage percentage                                       |
-| `pilot register-plan <path> <status>` | Associate a plan file with the current session                             |
-| `pilot sessions [--json]`             | Show count of active Pilot Shell sessions                                  |
-
-</details>
-
-<details>
-<summary><b>Worktree Isolation</b></summary>
-
-| Command                                | Purpose                                               |
-| -------------------------------------- | ----------------------------------------------------- |
-| `pilot worktree create --json <slug>`  | Create isolated git worktree for safe experimentation |
-| `pilot worktree detect --json <slug>`  | Check if a worktree already exists                    |
-| `pilot worktree diff --json <slug>`    | List changed files in the worktree                    |
-| `pilot worktree sync --json <slug>`    | Squash merge worktree changes back to base branch     |
-| `pilot worktree cleanup --json <slug>` | Remove worktree and branch when done                  |
-| `pilot worktree status --json`         | Show active worktree info for current session         |
-
-</details>
-
-<details>
-<summary><b>License & Auth</b></summary>
-
-| Command                        | Purpose                                |
-| ------------------------------ | -------------------------------------- |
-| `pilot activate <key>`         | Activate a license key on this machine |
-| `pilot deactivate`             | Deactivate license on this machine     |
-| `pilot status [--json]`        | Show current license status            |
-| `pilot verify [--json]`        | Verify license (used by hooks)         |
-| `pilot trial --check [--json]` | Check trial eligibility                |
-| `pilot trial --start [--json]` | Start a trial                          |
-
-</details>
+| Component | What it does |
+| --- | --- |
+| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | Quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), memory capture, and session lifecycle management |
+| [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — conditional rule loading, progressive skill disclosure, lazy MCP tool loading, RTK output compression. Compaction resilience for 200K windows |
+| [**Smart Model Routing**](https://pilot-shell.com/docs/features/model-routing) | Opus for planning, Sonnet for implementation and verification. Configurable per-phase via Console Settings. Context window (200K/1M) auto-detected |
+| [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 9 built-in rules (workflow, testing, verification, debugging, tools) + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
+| [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 6 servers: library docs, persistent memory, web search, GitHub code search, web page fetching, code knowledge graph |
+| [**Language Servers**](https://pilot-shell.com/docs/features/language-servers) | Real-time diagnostics for Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed, auto-configured |
+| [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
 
 ---
 
@@ -630,13 +431,6 @@ Yes. Pilot Shell enhances Claude Code — it doesn't replace it. You need an act
 </details>
 
 <details>
-<summary><b>Does Pilot Shell work with Codex, Gemini CLI, OpenCode, or other AI coding tools?</b></summary>
-
-No. Pilot Shell is built exclusively for Claude Code. Every hook, rule, command, and workflow is engineered specifically for Claude's tool-use protocol, prompt format, and session lifecycle. Pilot Shell also only supports Claude Sonnet 4.6 and Claude Opus 4.6 — these are the models that produce the best results, and every rule and prompt is optimized for their behavior. Supporting other tools or models would mean compromising on quality, which is the opposite of what Pilot Shell is designed to do.
-
-</details>
-
-<details>
 <summary><b>Does Pilot Shell work with existing projects?</b></summary>
 
 Yes — that's the primary use case. Pilot Shell doesn't scaffold or restructure your code. You install it, run `/setup-rules`, and it explores your codebase to discover your tech stack, conventions, and patterns. From there, every session has full context about your project. The more complex and established your codebase, the more value Pilot Shell adds — quality hooks catch regressions, persistent memory preserves decisions across sessions, and `/spec` plans features against your real architecture.
@@ -646,7 +440,7 @@ Yes — that's the primary use case. Pilot Shell doesn't scaffold or restructure
 <details>
 <summary><b>Does Pilot Shell work with any programming language?</b></summary>
 
-Pilot Shell's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box. TDD enforcement, spec-driven development, persistent memory, context preservation hooks, and all rules and standards work with any language that Claude Code supports. You can add custom hooks for additional languages.
+Pilot Shell's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box. TDD enforcement, spec-driven development, persistent memory, context optimization, and all rules and standards work with any language that Claude Code supports. You can add custom hooks for additional languages.
 
 </details>
 

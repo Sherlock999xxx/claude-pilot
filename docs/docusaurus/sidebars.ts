@@ -32,7 +32,7 @@ const sidebars: SidebarsConfig = {
         "features/statusline",
         "features/model-routing",
         "features/rules",
-        "features/context-preservation",
+        "features/context-optimization",
         "features/remote-control",
         "features/hooks",
         "features/extensions",
