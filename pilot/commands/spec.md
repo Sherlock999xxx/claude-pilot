@@ -2,6 +2,7 @@
 description: Spec-driven development - plan, implement, verify workflow
 argument-hint: "<task description>" or "<path/to/plan.md>"
 user-invocable: true
+effort: high
 model: sonnet
 ---
 

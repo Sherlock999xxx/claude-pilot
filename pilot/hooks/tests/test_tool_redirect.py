@@ -1,4 +1,4 @@
-"""Tests for tool_redirect hook — blocks WebSearch/WebFetch/Explore/PlanMode, warns on general Agent calls."""
+"""Tests for tool_redirect hook — blocks WebSearch/WebFetch/Explore/PlanMode/research agents."""
 
 from __future__ import annotations
 
@@ -99,18 +99,41 @@ class TestBlockedAgentTypes:
         assert "/spec" in output
 
 
-class TestAgentWarning:
-    """General Agent calls are warned (not blocked) — exit code 0 with context."""
+class TestAgentPassthrough:
+    """Non-blocked Agent calls pass through silently — no output."""
 
-    def test_warns_agent_general_purpose(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "general-purpose", "prompt": "research"})
+    def test_allows_agent_general_purpose(self):
+        code, output = _run_with_input("Agent", {"subagent_type": "general-purpose", "description": "Fix test failures", "prompt": "fix"})
         assert code == 0
-        assert "additionalContext" in output
+        assert output == ""
 
-    def test_warns_agent_without_subagent_type(self):
-        code, output = _run_with_input("Agent", {"prompt": "do something"})
+    def test_allows_agent_without_subagent_type(self):
+        code, output = _run_with_input("Agent", {"description": "Run test suite", "prompt": "do something"})
         assert code == 0
-        assert "additionalContext" in output
+        assert output == ""
+
+
+class TestResearchAgentBlocked:
+    """Agent with description starting with 'Research' is blocked."""
+
+    def test_blocks_research_first_word(self):
+        code, output = _run_with_input("Agent", {"description": "Research Extensions system", "prompt": "explore"})
+        assert code == 2
+        assert "Probe" in output
+
+    def test_blocks_research_case_insensitive(self):
+        code, output = _run_with_input("Agent", {"description": "research codebase architecture", "prompt": "explore"})
+        assert code == 2
+
+    def test_allows_research_not_first_word(self):
+        code, output = _run_with_input("Agent", {"description": "Find research papers", "prompt": "search"})
+        assert code == 0
+        assert output == ""
+
+    def test_allows_research_midsentence(self):
+        code, output = _run_with_input("Agent", {"description": "Do some research work", "prompt": "explore"})
+        assert code == 0
+        assert output == ""
 
 
 class TestAllowedSpecReviewerAgents:
@@ -246,10 +269,15 @@ class TestSubprocessIntegration:
             assert exit_code == 0, f"{tool} should be allowed"
             assert not _is_denied(stdout)
 
-    def test_agent_warned_not_blocked(self):
-        exit_code, stdout, _ = _run_subprocess("Agent")
+    def test_agent_passthrough_silent(self):
+        exit_code, stdout, _ = _run_subprocess("Agent", {"description": "Fix test suite"})
         assert exit_code == 0
-        assert _has_warning_context(stdout)
+        assert stdout.strip() == ""
+
+    def test_research_agent_blocked(self):
+        exit_code, stdout, _ = _run_subprocess("Agent", {"description": "Research API design"})
+        assert exit_code == 2
+        assert _is_denied(stdout)
 
     def test_spec_reviewers_silent(self):
         for subagent in ["pilot:spec-reviewer", "pilot:plan-reviewer"]:

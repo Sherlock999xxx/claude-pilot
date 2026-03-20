@@ -68,5 +68,5 @@ your-skill-name/
 - You discovered an undocumented tool or API integration pattern
 
 :::info
-Skills are plain markdown files stored in `.claude/skills/`. They're loaded on-demand when relevant, created by `/create-skill`, and shareable across your team via the **Share dashboard**.
+Skills are plain markdown files stored in `.claude/skills/`. They're loaded on-demand when relevant, created by `/create-skill`, and shareable across your team via the **Extensions page**.
 :::

@@ -2,6 +2,7 @@
 description: "Bugfix spec planning phase - investigate root cause, design fix, get approval"
 argument-hint: "<bug description> or <path/to/plan.md>"
 user-invocable: false
+effort: high
 model: opus
 hooks:
   Stop:

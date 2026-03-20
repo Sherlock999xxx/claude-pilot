@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""Hook to block built-in WebSearch/WebFetch/Plan mode and warn on general Agent sub-agent calls.
+"""Hook to block built-in WebSearch/WebFetch/Plan mode and research-type Agent sub-agent calls.
 
 Agent calls for /spec workflow reviewers (pilot:plan-reviewer, pilot:spec-reviewer)
 pass through silently. Explore and Plan agents are hard-blocked.
-Other Agent calls get a warning but are NOT blocked.
+Research-pattern agents (description starts with "Research") are blocked.
+All other Agent calls pass through silently.
 """
 
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.util import pre_tool_use_context, pre_tool_use_deny
+from _lib.util import pre_tool_use_deny
 
 BLOCKS: dict[str, dict[str, str]] = {
     "WebSearch": {
@@ -38,10 +40,12 @@ BLOCKS: dict[str, dict[str, str]] = {
     },
 }
 
-AGENT_WARNING = (
-    "Prefer doing work directly with Probe CLI, codebase-memory-mcp, Grep/Glob, and Bash instead of sub-agents. "
-    "Sub-agents waste tokens duplicating work you can do yourself. "
-    "Exception: /spec reviewer agents (pilot:plan-reviewer, pilot:spec-reviewer) are fine."
+RESEARCH_BLOCK = (
+    "Research agent blocked: use Probe CLI, Grep/Glob, and codebase-memory-mcp directly",
+    "Research sub-agents are blocked. Use direct tools instead:\n"
+    "-> Probe: probe search \"query\" ./ --max-results 5 --max-tokens 2000\n"
+    "-> Grep/Glob: for exact pattern matching\n"
+    "-> Graph: ToolSearch(query=\"+codebase-memory-mcp search\") then search_graph/trace_call_path",
 )
 
 BLOCKED_AGENT_REASONS: dict[str, tuple[str, str]] = {
@@ -66,9 +70,12 @@ SILENT_AGENT_TYPES: set[str] = {"pilot:plan-reviewer", "pilot:spec-reviewer"}
 # Agent sub-agent types that are hard-blocked
 BLOCKED_AGENT_TYPES: set[str] = set(BLOCKED_AGENT_REASONS)
 
+# Patterns in Agent description that indicate research (case-insensitive)
+RESEARCH_PATTERN: re.Pattern[str] = re.compile(r"^research\b", re.IGNORECASE)
+
 
 def run_tool_redirect() -> int:
-    """Block WebSearch/WebFetch/Explore/Plan agents. Warn (don't block) on general Agent calls."""
+    """Block WebSearch/WebFetch/Explore/Plan agents and research-pattern agents."""
     try:
         hook_data = json.load(sys.stdin)
     except (json.JSONDecodeError, OSError):
@@ -76,9 +83,12 @@ def run_tool_redirect() -> int:
 
     tool_name = hook_data.get("tool_name", "")
 
-    # Agent: silent pass for /spec reviewers, block Explore, warning for everything else
+    # Agent: silent pass for /spec reviewers, block Explore/Plan/research, warn others
     if tool_name == "Agent":
-        subagent_type = hook_data.get("tool_input", {}).get("subagent_type", "")
+        tool_input = hook_data.get("tool_input", {})
+        subagent_type = tool_input.get("subagent_type", "")
+        description = tool_input.get("description", "")
+
         if subagent_type in SILENT_AGENT_TYPES:
             return 0
         if subagent_type in BLOCKED_AGENT_TYPES:
@@ -86,8 +96,11 @@ def run_tool_redirect() -> int:
             sys.stderr.write(f"\033[0;31m[Pilot] {stderr_msg}\033[0m\n")
             print(pre_tool_use_deny(deny_reason))
             return 2
-        sys.stderr.write(f"\033[0;33m[Pilot] Agent sub-agent warning: prefer direct tools\033[0m\n")
-        print(pre_tool_use_context(AGENT_WARNING))
+        if RESEARCH_PATTERN.search(description):
+            stderr_msg, deny_reason = RESEARCH_BLOCK
+            sys.stderr.write(f"\033[0;31m[Pilot] {stderr_msg}\033[0m\n")
+            print(pre_tool_use_deny(deny_reason))
+            return 2
         return 0
 
     # WebSearch/WebFetch: hard block

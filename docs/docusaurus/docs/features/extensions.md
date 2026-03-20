@@ -68,6 +68,32 @@ When an extension exists both locally and in the remote, the detail modal shows 
 - **Use Remote → Local** — overwrite your local version with the remote
 - **Use Local → Remote** — push your local version to the remote
 
+### APM Format (Cross-Tool Compatibility)
+
+Pilot Shell supports pushing extensions in [APM (Agent Package Manager)](https://microsoft.github.io/apm/introduction/key-concepts/) format, making your team remote directly installable by anyone using `apm install owner/repo` — regardless of whether they use Copilot, Claude, Cursor, or other AI coding tools.
+
+When **APM format** is enabled, extensions are converted on push:
+
+| Pilot Shell (local)             | APM (remote)                                |
+| ------------------------------- | ------------------------------------------- |
+| `rules/my-rule.md`             | `instructions/my-rule.instructions.md`      |
+| `commands/my-cmd.md`           | `prompts/my-cmd.prompt.md`                  |
+| `agents/my-agent.md`           | `agents/my-agent.agent.md`                  |
+| `skills/my-skill/SKILL.md`    | `skills/my-skill/SKILL.md` (unchanged)      |
+
+APM-compatible [frontmatter](https://microsoft.github.io/apm/introduction/key-concepts/#instructions-instructionsmd) is automatically injected (e.g., `applyTo: "**"` for instructions, `description` for prompts and agents). An `apm.yml` manifest is generated in the remote.
+
+**Enabling APM format:**
+1. Click the edit (pencil) button next to your connected remote
+2. Check the **APM format** checkbox
+3. Click **Update** — Pilot migrates all existing extensions in a single commit
+
+**Migrating back:** Uncheck APM format and update. Extensions are renamed back to native format. Content (including any frontmatter) is preserved.
+
+**Mixed-format resilience:** During migration or partial updates, Pilot reads both formats from the remote, so no extensions become invisible.
+
+Learn more about APM: [Getting Started](https://microsoft.github.io/apm/getting-started/first-package/), [Team Sharing](https://microsoft.github.io/apm/enterprise/teams/), [Key Concepts](https://microsoft.github.io/apm/introduction/key-concepts/).
+
 ### Subfolder Support
 
 Some teams organize their extensions repository with subfolder paths (e.g., `plugins/myteam/rules/`, `plugins/myteam/skills/`). When you specify a subfolder during connection, all browse/push/pull operations automatically translate between the subfolder-prefixed remote paths and your local `~/.claude/` paths.

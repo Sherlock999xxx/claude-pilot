@@ -223,10 +223,15 @@ __marimo__/
 
 # Claude Code
 CLAUDE.md
+AGENTS.md
+apm.yml
 .playwright-*/
+.apm
+.agents
 .vercel
 .mcp.json
 demo
+skills-lock.json
 sx.json
 .env**
 playwright/

@@ -2,6 +2,7 @@
 description: "Bugfix verification phase - tests, quality checks, fix confirmation"
 argument-hint: "<path/to/plan.md>"
 user-invocable: false
+effort: high
 model: sonnet
 hooks:
   Stop:

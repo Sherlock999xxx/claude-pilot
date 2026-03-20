@@ -24,10 +24,11 @@ Rules load automatically at session start — they're enforced standards, not su
 - `context-management.md` — Auto-compaction and context preservation
 - `code-review-reception.md` — How to receive and act on code review feedback
 
-### Tools (2 rules)
+### Tools (3 rules)
 
 - `cli-tools.md` — Pilot CLI, Probe code search, RTK token optimization
 - `playwright-cli.md` — Browser automation for E2E UI testing
+- `mcp-servers.md` — MCP server reference and tool selection guidance
 
 ## Coding Standards — Activated by File Type
 

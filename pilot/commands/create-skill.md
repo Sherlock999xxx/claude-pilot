@@ -1,6 +1,7 @@
 ---
 description: Create a well-structured skill — provide a topic to explore the codebase and build a skill interactively, or capture a workflow from the current session
 user-invocable: true
+effort: max
 model: opus
 ---
 

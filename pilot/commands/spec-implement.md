@@ -2,6 +2,7 @@
 description: "Spec implementation phase - TDD loop for each task in the plan"
 argument-hint: "<path/to/plan.md>"
 user-invocable: false
+effort: high
 model: sonnet
 ---
 

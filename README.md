@@ -144,10 +144,9 @@ Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
 | ----------------- | ------------------------------------------------------------------------------- |
 | **Model**         | Active model in short form (`Opus 4.6 [1M]`)                                    |
 | **Context**       | Effective context usage with progress bar. Green < 80%, Yellow 80–95%, Red 95%+ |
-| **Lines changed** | `+added -removed` in session (hidden on Linux when usage data available)        |
+| **Lines changed** | `+added -removed` in session (hidden when usage API data available)             |
 | **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts                              |
-| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |
-| **5h / 7d usage** | Rate limit usage with reset time (Linux only)                                   |
+| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |           |
 | **RTK savings**   | Token savings from RTK proxy (shown when no usage data)                         |
 
 **Line 2 — Mode:**
@@ -296,7 +295,7 @@ Use `/setup-rules` to auto-generate rules from your codebase. Use `/create-skill
 
 **Global vs Project scope:** Extensions in `.claude/` are project-specific (commit them so teammates get them on `git clone`). Extensions in `~/.claude/` are personal and available across all your projects.
 
-**Team sharing (Team tier):** Connect a git repository to share extensions across your team. Push local extensions to the remote, pull remote ones to your machine, and compare versions with a built-in diff view. Supports subfolder paths for organized team repos.
+**Team sharing (Team tier):** Connect a git repository to share extensions across your team. Push local extensions to the remote, pull remote ones to your machine, and compare versions with a built-in diff view. Supports subfolder paths for organized team repos. Optional [APM format](https://microsoft.github.io/apm/introduction/key-concepts/) makes your remote installable via `apm install` for cross-tool compatibility (Copilot, Cursor, OpenCode).
 
 **Plugin extensions:** Installed Claude Code plugins and their extensions (commands, skills, agents) are automatically discovered and shown in the Extensions page as read-only items.
 
@@ -458,6 +457,7 @@ Production-tested best practices loaded into every session. Core rules cover wor
 
 - `development-practices.md` — Project policies, debugging methodology, git rules
 - `context-management.md` — Auto-compaction and context preservation
+- `code-review-reception.md` — How to receive and act on code review feedback
 
 </details>
 
@@ -466,6 +466,7 @@ Production-tested best practices loaded into every session. Core rules cover wor
 
 - `cli-tools.md` — Pilot CLI, Probe CLI semantic search, RTK token optimization
 - `playwright-cli.md` — Browser automation for E2E UI testing
+- `mcp-servers.md` — MCP server reference and tool selection guidance
 
 </details>
 

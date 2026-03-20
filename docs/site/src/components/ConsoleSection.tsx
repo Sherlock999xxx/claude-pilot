@@ -19,7 +19,7 @@ const consoleSlides = [
     label: "Extensions",
     src: "/console/extensions.png",
     alt: "Extensions view — local, plugin, and remote extensions with team sharing",
-    desc: "Browse, edit, and share extensions. Team sharing via git with push, pull, and diff. Plugin extensions auto-discovered.",
+    desc: "Browse, edit, and share extensions. Team sharing via git with push, pull, and diff. APM-compatible format for cross-tool sharing. Plugin extensions auto-discovered.",
   },
   {
     label: "Changes",

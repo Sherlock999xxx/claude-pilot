@@ -2,6 +2,7 @@
 description: "Spec verification phase - tests, execution, rules audit, code review"
 argument-hint: "<path/to/plan.md>"
 user-invocable: false
+effort: high
 model: sonnet
 hooks:
   Stop:

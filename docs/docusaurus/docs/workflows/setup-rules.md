@@ -17,7 +17,7 @@ $ pilot
 
 ## What /setup-rules Does
 
-10 phases:
+11 phases:
 
 | Phase | Action |
 |-------|--------|
