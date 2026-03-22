@@ -2,6 +2,16 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.7.2] - 2026-03-22
+
+### Bug Fixes
+
+- Add compatibility with Telegram Plugin
+
+### Miscellaneous
+
+- Updated Readme and Website
+
 ## [7.7.1] - 2026-03-20
 
 ### Bug Fixes
