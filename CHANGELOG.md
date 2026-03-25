@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.7.3] - 2026-03-25
+
+### Bug Fixes
+
+- Improve light mode readability and console UI fixes
+
 ## [7.7.2] - 2026-03-22
 
 ### Bug Fixes
