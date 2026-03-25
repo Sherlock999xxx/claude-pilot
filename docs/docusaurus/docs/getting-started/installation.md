@@ -30,34 +30,6 @@ Run from any directory — it installs globally to `~/.pilot/` and `~/.claude/`.
 | 6 | VS Code extensions | Installs recommended extensions for your language stack |
 | 7 | Finalize | Success message with next steps |
 
-## Permissions Mode
-
-Pilot Shell sets Claude Code to `bypassPermissions` mode by default. This enables the `/spec` workflow to run autonomously — planning, implementing, and verifying without pausing for permission prompts.
-
-**In Quick Mode (regular chat), you control the permission level.** Press `Shift+Tab` to cycle through modes:
-
-| Mode | Behavior |
-|------|----------|
-| **Plan** | Claude proposes changes, you approve before execution |
-| **Accept Edits** | File edits auto-approved, other actions still prompt |
-| **Normal** | Fine-grained permission prompts for each tool call |
-
-To set a persistent default, change `defaultMode` in `~/.claude/settings.json`:
-
-```json
-{
-  "permissions": {
-    "defaultMode": "acceptEdits"
-  }
-}
-```
-
-The installer uses three-way merge — your customizations to `defaultMode` and other permission settings are preserved across updates.
-
-:::tip Use /spec instead of plan mode
-Claude Code's built-in plan mode (`Shift+Tab` → "plan") is unstructured — plans aren't saved as files, have no consistent format, and disappear when the session ends. Use `/spec` as a drop-in replacement: plans are saved as structured markdown in `docs/plans/`, persist across sessions, and drive a complete workflow with TDD and verification. See the [spec workflow guide](/docs/workflows/spec).
-:::
-
 ## Dev Container
 
 Pilot Shell works inside Dev Containers. Copy the `.devcontainer` folder from the [Pilot Shell repository](https://github.com/maxritter/pilot-shell/tree/main/.devcontainer) into your project, adapt it to your needs (base image, extensions, dependencies), and run the installer inside the container. The installer auto-detects the container environment and skips system-level dependencies like Homebrew.
