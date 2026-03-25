@@ -40,19 +40,19 @@ hooks:
 echo "QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED REVIEWER=$PILOT_PLAN_REVIEWER_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
 ```
 
-Reference these values throughout: Steps 1.2/1.3b/1.4 (questions), 1.7 (reviewer), and 1.8 (approval).
+Reference these values throughout: Steps 1.2/1.4 (questions), 1.7 (reviewer), and 1.8 (approval).
 
 ---
 
 ## Asking User Questions
 
-**⛔ If `PILOT_PLAN_QUESTIONS_ENABLED` is `"false"` (from Step 0),** skip ALL `AskUserQuestion` calls in Steps 1.2, 1.3b, and 1.4. Make reasonable default choices and document them in the plan under an "Autonomous Decisions" sub-section. Continue to the next step immediately.
+**⛔ If `PILOT_PLAN_QUESTIONS_ENABLED` is `"false"` (from Step 0),** skip ALL `AskUserQuestion` calls in Steps 1.2 and 1.4. Make reasonable default choices (including selecting the recommended approach in Step 1.4) and document them in the plan under an "Autonomous Decisions" sub-section. Continue to the next step immediately.
 
 **⛔ ALWAYS use the `AskUserQuestion` tool** (when questions are enabled) — never list numbered questions in plain text. Each question gets its own entry with predefined options users can select. This provides a structured form UI that is much easier to answer than freeform numbered lists.
 
 **⛔ Default is to ASK, not skip.** Every plan benefits from at least one round of user alignment. Only skip questions when the task is a single-file change with zero ambiguity.
 
-**Questions batched into max 2 interactions:** Batch 1 (before exploration) clarifies task/scope/priorities. Batch 2 (after exploration) resolves architecture/design decisions. **Both batches are expected for most tasks** — skipping both is the exception, not the norm.
+**Questions batched into max 2 interactions:** Batch 1 (before exploration) clarifies task/scope/priorities. Batch 2 (after exploration) covers approach selection and design decisions. **Both batches are expected for most tasks** — skipping both is the exception, not the norm.
 
 **Principles:** Present options with trade-offs (not open-ended). Start open, narrow down. Challenge vagueness — make abstract concrete. 1-2 focused questions beat 4 vague ones. Questions clarify HOW to implement, not whether to expand scope.
 
@@ -123,7 +123,8 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
 ### Step 1.2: Task Understanding, Discuss & Clarify
 
 1. Restate the task in your own words — core problem, assumptions
-2. Identify gray areas:
+2. **Scope check:** Does this task describe multiple independent subsystems (e.g., "build chat, file storage, billing, and analytics")? If so, flag immediately — don't spend questions refining details of a task that needs decomposition first. Suggest splitting into separate plans, one per subsystem, each producing working software on its own. Proceed with the first sub-task.
+3. Identify gray areas:
 
    | Domain      | Typical Gray Areas                                 |
    | ----------- | -------------------------------------------------- |
@@ -161,26 +162,38 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
 
 For each area: document hypotheses, note full file paths, track unanswered questions. After exploration: read identified files to verify hypotheses, build complete mental model, identify integration points, note reusable patterns.
 
-### Step 1.3b: Present Findings & Scope Selection — CONDITIONAL
+### Step 1.4: Approach Selection & Design Decisions
 
-**Only when exploration revealed multiple possible directions or scope is ambiguous.** Skip for straightforward tasks.
+**⛔ Do NOT skip this step.** After exploration, always propose competing approaches before committing to a design. Even when one approach seems obvious, stating alternatives with trade-offs validates the choice and surfaces blind spots.
 
-1. Notify user, list discovered gaps/opportunities with brief assessments
-2. For non-trivial decisions: present 2-3 approaches with trade-offs and your recommendation — don't just list discoveries, show the design space
-3. `AskUserQuestion(multiSelect: true)` — let user pick which items to include
-4. Unselected items go to "Out of Scope" or "Deferred Ideas"
+**Two parts — both mandatory:**
 
-### Step 1.4: Design Decisions
+#### Part A: Overall Approach
 
-**⛔ Do NOT skip this step.** After exploration, there are always design choices to validate — even confirming the "obvious" approach ensures alignment. For each decision, propose 2-3 concrete approaches with trade-offs and your recommendation. Summarize findings, notify, then use `AskUserQuestion` (Batch 2) — each decision as a separate question with the approaches as options:
+Propose 2-3 implementation approaches based on exploration findings. For each approach:
+
+- **Name** — short label (e.g., "Extend existing handler" vs "New dedicated service")
+- **How it works** — 2-3 sentences
+- **Trade-offs** — frame as **"X at the cost of Y"** — never recommend without stating what it costs
+- **Recommendation** — mark your preferred approach with reasoning
+
+If exploration also revealed scope ambiguity (gaps, optional features, multiple directions), include scope items as part of this step. `AskUserQuestion(multiSelect: true)` for scope items; unselected items go to "Out of Scope" or "Deferred Ideas."
+
+#### Part B: Design Decisions
+
+Within the chosen approach, resolve remaining design choices. Each decision gets 2-3 concrete options with trade-offs and your recommendation.
+
+**Notify, then ask (Batch 2):**
 
 ```bash
 ~/.pilot/bin/pilot notify plan_approval "Design Decisions" "<plan_name> — architecture choices" --plan-path "<plan_path>" 2>/dev/null || true
 ```
 
-Frame each decision as **"X at the cost of Y"** — never recommend without stating what it costs.
+Use `AskUserQuestion` — Part A (approach selection) and Part B (design decisions) can be combined into a single Batch 2 interaction when the decisions are related.
 
-Incorporate user choices into plan design, proceed to Step 1.5.
+**When questions are disabled (`PILOT_PLAN_QUESTIONS_ENABLED=false`):** Still evaluate approaches and design decisions internally. Select the recommended approach, resolve design decisions with reasonable defaults, and document all choices with reasoning in the plan's "Autonomous Decisions" section.
+
+Incorporate choices into plan design, proceed to Step 1.5.
 
 ### Step 1.5: Implementation Planning
 
@@ -256,6 +269,12 @@ Type: Feature
 ### In Scope
 
 ### Out of Scope
+
+## Approach
+
+**Chosen:** [Name of selected approach]
+**Why:** [1-2 sentences — what it gives us and what it costs]
+**Alternatives considered:** [Brief list of other approaches with why they were rejected]
 
 ## Context for Implementer
 

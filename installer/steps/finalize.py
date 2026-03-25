@@ -85,5 +85,5 @@ class FinalizeStep(BaseStep):
             ui.print()
             ui.print("  [bold yellow]⭐ Star this repo:[/bold yellow] https://github.com/maxritter/pilot-shell")
             ui.print()
-            ui.print(f"  [dim]Installed version: {_get_pilot_version()}[/dim]")
+            ui.print(f"  [muted]Installed version: {_get_pilot_version()}[/muted]")
             ui.print()

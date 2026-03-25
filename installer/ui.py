@@ -28,7 +28,7 @@ PILOT_THEME = Theme(
         "error": "red bold",
         "step": "bold magenta",
         "highlight": "bold cyan",
-        "dim": "dim white",
+        "muted": "bright_black",
     }
 )
 
@@ -132,7 +132,7 @@ class Console:
         tagline.append("  ✈ ", style="cyan")
         tagline.append("Claude Code is powerful. Pilot Shell makes it reliable.", style="bold white")
         self._console.print(tagline)
-        self._console.print("    From requirement to production-grade code. Planned, tested, verified.", style="dim")
+        self._console.print("    From requirement to production-grade code. Planned, tested, verified.", style="muted")
         self._console.print()
 
         self._console.print("  [bold white]What You're Getting[/bold white]")
@@ -161,7 +161,7 @@ class Console:
             license_text.append("  ✓ ", style="green")
             license_text.append(f"{tier_display} License", style="bold green")
             if email:
-                license_text.append(f" — {email}", style="dim white")
+                license_text.append(f" — {email}", style="muted")
             self._console.print(license_text)
         elif tier == "trial":
             days = license_info.get("days_remaining") if license_info else None
@@ -170,14 +170,14 @@ class Console:
             if is_expired:
                 license_text.append("  ⚠ ", style="red")
                 license_text.append("Trial Expired", style="bold red")
-                license_text.append(" — Subscribe: ", style="dim white")
+                license_text.append(" — Subscribe: ", style="muted")
                 license_text.append("https://pilot-shell.com", style="cyan")
             else:
                 expires_at = license_info.get("expires_at") if license_info else None
                 time_str = _get_trial_time_str(days, expires_at)
                 license_text.append("  ⏳ ", style="yellow")
                 license_text.append(f"Trial ({time_str} remaining)", style="bold yellow")
-                license_text.append(" — Subscribe: ", style="dim white")
+                license_text.append(" — Subscribe: ", style="muted")
                 license_text.append("https://pilot-shell.com", style="cyan")
             self._console.print(license_text)
             self._console.print()
@@ -225,7 +225,7 @@ class Console:
         """Print an info message with info icon."""
         if self._quiet:
             return
-        self._console.print(f"  [dim]ℹ[/dim] [dim]{message}[/dim]")
+        self._console.print(f"  [muted]ℹ[/muted] [muted]{message}[/muted]")
 
     def next_steps(self, steps: list[tuple[str, str]]) -> None:
         """Print a styled next steps guide."""
@@ -238,7 +238,7 @@ class Console:
 
         for i, (title, description) in enumerate(steps, 1):
             self._console.print(f"  [bold magenta]{i}.[/bold magenta] [bold]{title}[/bold]")
-            self._console.print(f"     [dim]{description}[/dim]")
+            self._console.print(f"     [muted]{description}[/muted]")
             self._console.print()
 
     @contextmanager
@@ -290,6 +290,6 @@ class Console:
         """Print a plain message."""
         self._console.print(message)
 
-    def rule(self, title: str = "", style: str = "dim") -> None:
+    def rule(self, title: str = "", style: str = "muted") -> None:
         """Print a horizontal rule."""
         self._console.print(Rule(title, style=style))

@@ -36,7 +36,7 @@ If you haven't completed Step 1.2, you cannot propose fixes. Symptom fixes are f
 - **Right-size the plan** — small bugs get lean plans. Don't over-engineer.
 - **Plan file is source of truth** — survives across auto-compaction cycles
 - **ALWAYS use `AskUserQuestion` tool** for clarifications — never list numbered questions in plain text
-- **⛔ If `PILOT_PLAN_QUESTIONS_ENABLED` is `"false"` (from Step 0),** skip all `AskUserQuestion` calls (Steps 1.2.1, 1.2.5 escalation). Make reasonable default assumptions and document them in the plan. Continue autonomously.
+- **⛔ If `PILOT_PLAN_QUESTIONS_ENABLED` is `"false"` (from Step 0),** skip all `AskUserQuestion` calls (Steps 1.2.1, 1.2.5 escalation, 1.3 approach selection). Make reasonable default assumptions (including selecting the recommended fix approach) and document them in the plan. Continue autonomously.
 
 > **NOTE: During `/spec`, use the structured workflow below — not CC's native plan mode.**
 
@@ -167,6 +167,27 @@ BEFORE writing the plan:
   3. Is my confidence High or Medium? If LOW → back to 1.2
 ```
 
+### Fix Approach Selection
+
+**After confirming root cause, evaluate fix strategies before committing to one.** Even simple bugs often have multiple valid fixes (patch at symptom vs fix at source vs structural prevention). Making the choice explicit improves plan quality.
+
+Propose 2-3 fix approaches. For each:
+
+- **Name** — short label (e.g., "Patch at call site" vs "Fix at source" vs "Add validation layer")
+- **What it fixes** — which symptoms/failure modes it addresses
+- **Trade-offs** — scope of change, risk of regression, maintenance burden
+- **Recommendation** — mark your preferred approach with reasoning
+
+**When questions are enabled (`PILOT_PLAN_QUESTIONS_ENABLED` is not `"false"`):** Use `AskUserQuestion` to let the user pick the approach. Each approach is an option.
+
+```bash
+~/.pilot/bin/pilot notify plan_approval "Fix Approach" "<plan-slug> — fix strategy" --plan-path "<plan_path>" 2>/dev/null || true
+```
+
+**When questions are disabled:** Select the recommended approach and document the reasoning in the plan.
+
+**Skip for trivial bugs:** If there is genuinely only one reasonable fix (e.g., typo, wrong variable name, missing import), note the approach briefly and proceed — don't manufacture fake alternatives.
+
 ### Size the task structure
 
 | Size                  | Criteria                         | Tasks                         |
@@ -218,6 +239,10 @@ Type: Bugfix
 - [Recent changes that may have caused it, if relevant]
 
 ## Fix Approach
+
+**Chosen:** [Name of selected approach]
+**Why:** [1-2 sentences — what it fixes and what it costs]
+**Alternatives considered:** [Brief list of other approaches with why they were rejected — omit for trivial bugs]
 
 **Files:** [files to modify]
 **Strategy:** [how to fix — reference pattern from working code if applicable]

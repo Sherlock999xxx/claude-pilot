@@ -247,7 +247,7 @@ def _prompt_license_key(
         if not license_key:
             console.error("License key is required")
             if attempt < max_attempts - 1:
-                console.print("  [dim]Please try again.[/dim]")
+                console.print("  [muted]Please try again.[/muted]")
             continue
 
         validated = _validate_license_key(console, project_dir, license_key)
@@ -255,8 +255,8 @@ def _prompt_license_key(
             return True
         if attempt < max_attempts - 1:
             console.print()
-            console.print("  [dim]Please check your license key and try again.[/dim]")
-            console.print("  [dim]Subscribe: https://pilot-shell.com[/dim]")
+            console.print("  [muted]Please check your license key and try again.[/muted]")
+            console.print("  [muted]Subscribe: https://pilot-shell.com[/muted]")
             console.print()
 
     console.print()
