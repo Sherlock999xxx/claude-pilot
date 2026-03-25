@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.7.5] - 2026-03-25
+
+### Bug Fixes
+
+- Safe fallback for --enable-auto-mode on older Claude Code versions
+
 ## [7.7.4] - 2026-03-25
 
 ### Bug Fixes
