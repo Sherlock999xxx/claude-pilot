@@ -432,13 +432,6 @@ Yes. Your source code, project files, and development context never leave your m
 </details>
 
 <details>
-<summary><b>What are the licenses of Pilot Shell's dependencies?</b></summary>
-
-All external tools and dependencies that Pilot Shell installs and uses are open source with permissive licenses (MIT, Apache 2.0, BSD). This includes ruff, basedpyright, Prettier, ESLint, gofmt, uv, Probe, RTK, codebase-memory-mcp, agent-browser, and all MCP servers. No copyleft or restrictive-licensed dependencies are introduced into your environment.
-
-</details>
-
-<details>
 <summary><b>Do I need a separate Anthropic subscription?</b></summary>
 
 Yes. Pilot Shell enhances Claude Code — it doesn't replace it. You need an active Claude subscription — [Max 5x or 20x](https://claude.com/pricing) for solo developers, [Team Premium](https://claude.com/pricing) for teams, or [Enterprise](https://claude.com/pricing) for organizations with compliance or procurement requirements. Pilot Shell adds quality automation on top of whatever Claude Code access you already have.
@@ -467,24 +460,6 @@ Yes. Pilot Shell installs once globally and works across all your projects — y
 </details>
 
 <details>
-<summary><b>Do I need to run the installer from inside a project directory?</b></summary>
-
-No. You can run the installer from any directory — your home folder, a parent folder containing multiple repos, anywhere. Everything installs globally to `~/.pilot/` and `~/.claude/`. The only file written to the current directory is `.nvmrc` (a Node.js version hint).
-
-</details>
-
-<details>
-<summary><b>Should I still use Claude Code's built-in plan mode (Shift+Tab)?</b></summary>
-
-No — use `/spec` instead. Claude Code's built-in plan mode (Shift+Tab → "plan") is unstructured: plans live only in the conversation, have no consistent format, aren't saved as files, and disappear when the session ends. There's no verification, no TDD enforcement, and no way to resume or review a plan later.
-
-`/spec` is a drop-in replacement that fixes all of this. Plans are written as structured markdown files in `docs/plans/` with a consistent format — scope, tasks, definition of done, and approval status. They persist across sessions, can be edited before approval, and drive a complete workflow: plan → implement with TDD → verify with code review. The plan file becomes the single source of truth for the entire task.
-
-**Use `/spec` for all planned work.** Use Quick Mode (regular chat) for small tasks and exploration. There's no reason to use Claude Code's built-in plan mode when Pilot Shell is installed.
-
-</details>
-
-<details>
 <summary><b>Why does Pilot Shell use bypass permissions mode?</b></summary>
 
 Pilot Shell sets Claude Code to `bypassPermissions` mode by default so the `/spec` workflow can run autonomously — planning, implementing, and verifying without pausing for permission prompts at every tool call. This is what enables the end-to-end spec-driven development experience.
@@ -507,13 +482,6 @@ You can also set a persistent default in `~/.claude/settings.json` by changing t
 Yes. Create your own in your project's `.claude/` folder — rules, commands, skills, and agents are all plain markdown files. Your project-level assets load alongside Pilot Shell's built-in defaults and take precedence when they overlap. `/setup-rules` auto-discovers your codebase patterns and generates project-specific rules. `/create-skill` builds reusable skills from any topic interactively. View and manage all extensions on the Console Extensions page.
 
 For monorepos, organize rules in nested subdirectories by product and team (e.g. `.claude/rules/my-product/team-x/`). Team-level rules must use `paths` frontmatter so they only load when working on relevant files. `/setup-rules` validates this structure, enforces path-scoping, and generates a `README.md` to document the organization.
-
-</details>
-
-<details>
-<summary><b>Can I control Pilot Shell from my phone?</b></summary>
-
-Yes — using Claude Code's [Remote Control](https://youtu.be/Ko7_tC1fMMM?si=kWDzYiQvxlkZTrRK) feature. Start a session via `pilot` on your computer, then type `/remote-control` to make it accessible from the Claude Mobile App (iOS/Android) under the **Code** tab. You can also enable it globally via `/config` → "Enable Remote Control for all sessions". Remote Control requires the native install of Claude Code (`curl -fsSL https://claude.ai/install.sh | bash`), not the npm version. Your computer must stay awake — on macOS, use [Amphetamine](https://apps.apple.com/de/app/amphetamine/id937984704) to keep your Mac awake with the display off. To start sessions directly from your phone, install [Termius](https://termius.com/) on your mobile device, SSH into your computer, and run `pilot`. For SSH access outside your home network, install [Tailscale](https://tailscale.com/) on both devices — the Claude App approach works everywhere without extra setup. **Troubleshooting:** If Remote Control doesn't connect, run `/logout` followed by `/login` inside Claude Code to re-authenticate.
 
 </details>
 

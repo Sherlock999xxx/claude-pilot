@@ -30,7 +30,7 @@ const insideItems: InsideItem[] = [
     title: "Context Engineering",
     description: "Keep your context window lean",
     summary:
-      "RTK compresses CLI output by 60\u201390%. Rules load only for matching file types. When compaction fires, hooks preserve and restore plan state automatically.",
+      "Curated rules for best practices, TDD, debugging, and verification. Language-specific coding standards for TypeScript, Python, and frontend. Concise and modular \u2014 only what\u2019s relevant loads into context.",
   },
   {
     icon: Terminal,
@@ -51,28 +51,28 @@ const insideItems: InsideItem[] = [
     title: "Language Servers",
     description: "Real-time diagnostics on every edit",
     summary:
-      "Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed and auto-configured. Hooks catch formatting; LSPs provide type-level intelligence.",
+      "Python, TypeScript, and Go \u2014 auto-installed and auto-configured. Hooks catch formatting issues; language servers provide type-level intelligence and real-time diagnostics.",
   },
   {
     icon: Search,
     title: "Semantic Search",
     description: "Find code by intent, not keywords",
     summary:
-      "Probe CLI indexes your codebase for intent-based search and AST-aware extraction. codebase-memory-mcp traces call graphs and maps blast radius. Sub-300ms.",
+      "Search your codebase by intent, not just keywords. AST-aware extraction pulls exactly what\u2019s needed. Call graph tracing maps blast radius before you change anything. Sub-300ms.",
   },
   {
     icon: DollarSign,
     title: "Cost Optimization",
     description: "Right model, right task, visible spend",
     summary:
-      "Smart model routing: Opus for planning, Sonnet for implementation. RTK saves 60\u201390% on CLI token output. Usage tracking in Console shows daily cost and trends.",
+      "Smart model routing: Opus for planning, Sonnet for implementation. CLI proxy saves 60\u201390% on tool output tokens. Usage tracking in Console shows daily cost and trends.",
   },
   {
     icon: Sparkles,
     title: "Extensions & Sharing",
     description: "Skills, rules, commands, agents",
     summary:
-      "Create with /create-skill and /setup-rules. Share across machines via git, across teams via project repos. Seven extension types at four scopes \u2014 managed in Console.",
+      "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Seven extension types at four scopes \u2014 managed in Console.",
   },
 ];
 
@@ -105,8 +105,8 @@ const WhatsInside = () => {
             What's Inside
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-            One install command. Everything below is specific to Pilot Shell
-            — not a repackage of Claude Code features.
+            One install to bring battle-tested practices and quality standards to Claude Code.
+            <br></br>A shared baseline so every developer can focus on building, not configuring.
           </p>
         </div>
 
