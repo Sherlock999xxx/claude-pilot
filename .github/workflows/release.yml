@@ -172,6 +172,22 @@ jobs:
         working-directory: console
         run: bun install
 
+      - name: Verify logger.ts after git-crypt unlock
+        working-directory: console
+        run: |
+          echo "=== file type ==="
+          file src/utils/logger.ts
+          echo "=== line count ==="
+          wc -l src/utils/logger.ts
+          echo "=== formatTool grep ==="
+          grep -n "formatTool" src/utils/logger.ts || echo "MISSING: formatTool not in logger.ts!"
+          echo "=== first 5 lines ==="
+          head -5 src/utils/logger.ts
+          echo "=== lines 160-165 ==="
+          sed -n '160,165p' src/utils/logger.ts
+          echo "=== bun resolve check ==="
+          bun -e "import { logger } from './src/utils/logger.js'; console.log('formatTool type:', typeof logger.formatTool); console.log('methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(logger)).join(', '))"
+
       - name: Run console tests
         working-directory: console
         run: bun test
