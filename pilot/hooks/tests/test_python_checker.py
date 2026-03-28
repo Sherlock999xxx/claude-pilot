@@ -32,6 +32,85 @@ class TestCheckPythonTestFileSkip:
         assert reason == ""
 
 
+class TestCheckPythonNoConfig:
+    """When project has no ruff config, skip ruff entirely."""
+
+    def test_no_ruff_config_skips_ruff(self, tmp_path: Path) -> None:
+        """No pyproject.toml/ruff.toml means ruff is skipped."""
+        py_file = tmp_path / "app.py"
+        py_file.write_text("x = 1\n")
+
+        with patch("_checkers.python.check_file_length", return_value=""):
+            exit_code, reason = check_python(py_file)
+
+        assert exit_code == 0
+        assert reason == ""
+
+    def test_pyproject_without_ruff_section_skips(self, tmp_path: Path) -> None:
+        """pyproject.toml without [tool.ruff] means ruff is skipped."""
+        py_file = tmp_path / "app.py"
+        py_file.write_text("x = 1\n")
+        (tmp_path / "pyproject.toml").write_text("[project]\nname = 'foo'\n")
+
+        with patch("_checkers.python.check_file_length", return_value=""):
+            exit_code, reason = check_python(py_file)
+
+        assert exit_code == 0
+        assert reason == ""
+
+    def test_pyproject_with_ruff_section_runs_ruff(self, tmp_path: Path) -> None:
+        """pyproject.toml with [tool.ruff] enables ruff."""
+        py_file = tmp_path / "app.py"
+        py_file.write_text("x = 1\n")
+        (tmp_path / "pyproject.toml").write_text("[tool.ruff]\nline-length = 120\n")
+
+        mock_result = MagicMock(returncode=0, stdout="", stderr="")
+
+        with (
+            patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python.shutil.which", return_value="/usr/bin/ruff"),
+            patch("_checkers.python.subprocess.run", return_value=mock_result),
+        ):
+            exit_code, reason = check_python(py_file)
+
+        assert exit_code == 0
+        assert reason == ""
+
+    def test_ruff_toml_enables_ruff(self, tmp_path: Path) -> None:
+        """ruff.toml in project root enables ruff."""
+        py_file = tmp_path / "app.py"
+        py_file.write_text("x = 1\n")
+        (tmp_path / "ruff.toml").write_text("line-length = 120\n")
+
+        mock_result = MagicMock(returncode=0, stdout="", stderr="")
+
+        with (
+            patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python.shutil.which", return_value="/usr/bin/ruff"),
+            patch("_checkers.python.subprocess.run", return_value=mock_result),
+        ):
+            exit_code, reason = check_python(py_file)
+
+        assert exit_code == 0
+
+    def test_dot_ruff_toml_enables_ruff(self, tmp_path: Path) -> None:
+        """.ruff.toml in project root enables ruff."""
+        py_file = tmp_path / "app.py"
+        py_file.write_text("x = 1\n")
+        (tmp_path / ".ruff.toml").write_text("line-length = 120\n")
+
+        mock_result = MagicMock(returncode=0, stdout="", stderr="")
+
+        with (
+            patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python.shutil.which", return_value="/usr/bin/ruff"),
+            patch("_checkers.python.subprocess.run", return_value=mock_result),
+        ):
+            exit_code, reason = check_python(py_file)
+
+        assert exit_code == 0
+
+
 class TestCheckPythonNoTools:
     """When no tools are available, skip gracefully."""
 
@@ -42,6 +121,7 @@ class TestCheckPythonNoTools:
 
         with (
             patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python._has_ruff_config", return_value=True),
             patch("_checkers.python.shutil.which", return_value=None),
         ):
             exit_code, reason = check_python(py_file)
@@ -66,6 +146,7 @@ class TestCheckPythonRuffIssues:
 
         with (
             patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python._has_ruff_config", return_value=True),
             patch("_checkers.python.shutil.which", return_value="/usr/bin/ruff"),
             patch("_checkers.python.subprocess.run", return_value=mock_check),
         ):
@@ -88,6 +169,7 @@ class TestCheckPythonRuffIssues:
 
         with (
             patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python._has_ruff_config", return_value=True),
             patch("_checkers.python.shutil.which", side_effect=which_side_effect),
             patch("_checkers.python.subprocess.run", return_value=mock_result),
         ):
@@ -131,6 +213,7 @@ class TestCheckPythonReadOnly:
 
         with (
             patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python._has_ruff_config", return_value=True),
             patch("_checkers.python.shutil.which", return_value="/usr/bin/ruff"),
             patch("_checkers.python.subprocess.run", side_effect=run_side_effect),
         ):
@@ -175,6 +258,7 @@ class TestCheckPythonRuffOnly:
 
         with (
             patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python._has_ruff_config", return_value=True),
             patch("_checkers.python.shutil.which", side_effect=which_side_effect),
             patch("_checkers.python.subprocess.run", side_effect=run_side_effect),
         ):

@@ -8,6 +8,39 @@ from unittest.mock import MagicMock, patch
 from _checkers.go import check_go
 
 
+class TestCheckGoNoProject:
+    """When no go.mod exists, skip go vet entirely."""
+
+    def test_no_go_mod_skips_checks(self, tmp_path: Path) -> None:
+        """No go.mod means go vet is skipped."""
+        go_file = tmp_path / "main.go"
+        go_file.write_text("package main\n")
+
+        with patch("_checkers.go.check_file_length", return_value=""):
+            exit_code, reason = check_go(go_file)
+
+        assert exit_code == 0
+        assert reason == ""
+
+    def test_go_mod_enables_checks(self, tmp_path: Path) -> None:
+        """go.mod in project root enables go vet."""
+        go_file = tmp_path / "main.go"
+        go_file.write_text("package main\n")
+        (tmp_path / "go.mod").write_text("module example.com/foo\n")
+
+        mock_result = MagicMock(returncode=0, stdout="", stderr="")
+
+        with (
+            patch("_checkers.go.check_file_length", return_value=""),
+            patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name == "go" else None),
+            patch("_checkers.go.subprocess.run", return_value=mock_result),
+        ):
+            exit_code, reason = check_go(go_file)
+
+        assert exit_code == 0
+        assert reason == ""
+
+
 class TestCheckGoVetCounting:
     """Verify go vet issue counting excludes header lines."""
 
@@ -26,6 +59,7 @@ class TestCheckGoVetCounting:
 
         with (
             patch("_checkers.go.check_file_length", return_value=""),
+            patch("_checkers.go._has_go_project", return_value=True),
             patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name == "go" else None),
             patch("_checkers.go.subprocess.run", return_value=mock_result),
         ):
@@ -50,6 +84,7 @@ class TestCheckGoVetCounting:
 
         with (
             patch("_checkers.go.check_file_length", return_value=""),
+            patch("_checkers.go._has_go_project", return_value=True),
             patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name == "go" else None),
             patch("_checkers.go.subprocess.run", return_value=mock_result),
         ):
@@ -70,6 +105,7 @@ class TestCheckGoVetCounting:
 
         with (
             patch("_checkers.go.check_file_length", return_value=""),
+            patch("_checkers.go._has_go_project", return_value=True),
             patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name == "go" else None),
             patch("_checkers.go.subprocess.run", return_value=mock_vet),
         ):
@@ -112,6 +148,8 @@ class TestCheckGoReadOnly:
 
         with (
             patch("_checkers.go.check_file_length", return_value=""),
+            patch("_checkers.go._has_go_project", return_value=True),
+            patch("_checkers.go._has_golangci_config", return_value=True),
             patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name in ("go", "golangci-lint") else None),
             patch("_checkers.go.subprocess.run", side_effect=run_side_effect),
         ):
@@ -164,6 +202,7 @@ class TestCheckGoCleanFile:
 
         with (
             patch("_checkers.go.check_file_length", return_value=""),
+            patch("_checkers.go._has_go_project", return_value=True),
             patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name == "go" else None),
             patch("_checkers.go.subprocess.run", return_value=mock_result),
         ):

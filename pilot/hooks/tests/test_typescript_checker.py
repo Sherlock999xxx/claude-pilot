@@ -107,6 +107,44 @@ class TestCheckTypescriptTestFileSkip:
         assert reason == ""
 
 
+class TestCheckTypescriptNoConfig:
+    """When project has no eslint config, skip eslint."""
+
+    def test_no_eslint_config_skips_eslint(self, tmp_path: Path) -> None:
+        """No eslint config means eslint is skipped even if binary exists."""
+        ts_file = tmp_path / "app.ts"
+        ts_file.write_text("const x = 1;\n")
+
+        with (
+            patch("_checkers.typescript.check_file_length", return_value=""),
+            patch("_checkers.typescript.find_project_root", return_value=tmp_path),
+            patch("_checkers.typescript.find_tool", return_value="/usr/bin/eslint"),
+        ):
+            exit_code, reason = check_typescript(ts_file)
+
+        assert exit_code == 0
+        assert reason == ""
+
+    def test_eslint_config_js_enables_eslint(self, tmp_path: Path) -> None:
+        """eslint.config.js in project root enables eslint."""
+        ts_file = tmp_path / "app.ts"
+        ts_file.write_text("const x = 1;\n")
+        (tmp_path / "eslint.config.js").write_text("module.exports = {};\n")
+
+        eslint_json = json.dumps([{"filePath": str(ts_file), "errorCount": 0, "warningCount": 0, "messages": []}])
+        mock_eslint = MagicMock(returncode=0, stdout=eslint_json, stderr="")
+
+        with (
+            patch("_checkers.typescript.check_file_length", return_value=""),
+            patch("_checkers.typescript.find_project_root", return_value=tmp_path),
+            patch("_checkers.typescript.find_tool", return_value="/usr/bin/eslint"),
+            patch("_checkers.typescript.subprocess.run", return_value=mock_eslint),
+        ):
+            exit_code, reason = check_typescript(ts_file)
+
+        assert exit_code == 0
+
+
 class TestCheckTypescriptNoTools:
     """When no tools are available, skip gracefully."""
 
@@ -149,8 +187,9 @@ class TestCheckTypescriptEslintIssues:
 
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),
-            patch("_checkers.typescript.find_project_root", return_value=None),
+            patch("_checkers.typescript.find_project_root", return_value=tmp_path),
             patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None),
+            patch("_checkers.typescript._has_eslint_config", return_value=True),
             patch("_checkers.typescript.subprocess.run", return_value=mock_eslint),
         ):
             exit_code, reason = check_typescript(ts_file)
@@ -173,8 +212,9 @@ class TestCheckTypescriptCleanFile:
 
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),
-            patch("_checkers.typescript.find_project_root", return_value=None),
+            patch("_checkers.typescript.find_project_root", return_value=tmp_path),
             patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None),
+            patch("_checkers.typescript._has_eslint_config", return_value=True),
             patch("_checkers.typescript.subprocess.run", return_value=mock_eslint),
         ):
             exit_code, reason = check_typescript(ts_file)
@@ -219,8 +259,9 @@ class TestCheckTypescriptReadOnly:
 
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),
-            patch("_checkers.typescript.find_project_root", return_value=None),
+            patch("_checkers.typescript.find_project_root", return_value=tmp_path),
             patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None),
+            patch("_checkers.typescript._has_eslint_config", return_value=True),
             patch("_checkers.typescript.subprocess.run", side_effect=run_side_effect),
         ):
             check_typescript(ts_file)
@@ -264,8 +305,9 @@ class TestCheckTypescriptTscNotCalled:
 
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),
-            patch("_checkers.typescript.find_project_root", return_value=None),
+            patch("_checkers.typescript.find_project_root", return_value=tmp_path),
             patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}"),
+            patch("_checkers.typescript._has_eslint_config", return_value=True),
             patch("_checkers.typescript.subprocess.run", side_effect=run_side_effect),
         ):
             check_typescript(ts_file)

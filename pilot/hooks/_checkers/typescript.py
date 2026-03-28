@@ -35,6 +35,39 @@ def find_project_root(file_path: Path) -> Path | None:
     return None
 
 
+_ESLINT_CONFIGS = (
+    ".eslintrc",
+    ".eslintrc.js",
+    ".eslintrc.cjs",
+    ".eslintrc.json",
+    ".eslintrc.yml",
+    ".eslintrc.yaml",
+    "eslint.config.js",
+    "eslint.config.mjs",
+    "eslint.config.cjs",
+    "eslint.config.ts",
+    "eslint.config.mts",
+    "eslint.config.cts",
+)
+
+
+def _has_eslint_config(project_root: Path | None) -> bool:
+    """Check if the project has eslint configured."""
+    if not project_root:
+        return False
+    if any((project_root / cfg).exists() for cfg in _ESLINT_CONFIGS):
+        return True
+    pkg_json = project_root / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            if "eslintConfig" in data:
+                return True
+        except (json.JSONDecodeError, OSError):
+            pass
+    return False
+
+
 def find_tool(tool_name: str, project_root: Path | None) -> str | None:
     """Find tool binary, preferring local node_modules."""
     if project_root:
@@ -55,7 +88,7 @@ def check_typescript(file_path: Path) -> tuple[int, str]:
 
     eslint_bin = find_tool("eslint", project_root)
 
-    if not eslint_bin:
+    if not eslint_bin or not _has_eslint_config(project_root):
         return 0, length_warning
 
     results: dict[str, tuple] = {}

@@ -8,6 +8,37 @@ from pathlib import Path
 
 from _lib.util import check_file_length
 
+_GOLANGCI_CONFIGS = (
+    ".golangci.yml",
+    ".golangci.yaml",
+    ".golangci.toml",
+    ".golangci.json",
+)
+
+
+def _has_go_project(file_path: Path) -> bool:
+    """Check if the file is inside a Go module (has go.mod)."""
+    current = file_path.parent
+    for _ in range(20):
+        if (current / "go.mod").exists():
+            return True
+        if current.parent == current:
+            break
+        current = current.parent
+    return False
+
+
+def _has_golangci_config(file_path: Path) -> bool:
+    """Check if the project has golangci-lint configured."""
+    current = file_path.parent
+    for _ in range(20):
+        if any((current / cfg).exists() for cfg in _GOLANGCI_CONFIGS):
+            return True
+        if current.parent == current:
+            break
+        current = current.parent
+    return False
+
 
 def check_go(file_path: Path) -> tuple[int, str]:
     """Check Go file with go vet and golangci-lint. Returns (0, reason)."""
@@ -15,6 +46,9 @@ def check_go(file_path: Path) -> tuple[int, str]:
         return 0, ""
 
     length_warning = check_file_length(file_path)
+
+    if not _has_go_project(file_path):
+        return 0, length_warning
 
     go_bin = shutil.which("go")
     golangci_lint_bin = shutil.which("golangci-lint")
@@ -36,7 +70,7 @@ def check_go(file_path: Path) -> tuple[int, str]:
     except Exception:
         pass
 
-    if golangci_lint_bin:
+    if golangci_lint_bin and _has_golangci_config(file_path):
         try:
             result = subprocess.run(
                 [golangci_lint_bin, "run", "--fast", str(file_path)], capture_output=True, text=True, check=False

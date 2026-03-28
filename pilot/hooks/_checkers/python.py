@@ -10,12 +10,35 @@ from pathlib import Path
 from _lib.util import check_file_length
 
 
+def _has_ruff_config(file_path: Path) -> bool:
+    """Check if the project has ruff configured by walking up from the file."""
+    current = file_path.parent
+    for _ in range(20):
+        if (current / "ruff.toml").exists() or (current / ".ruff.toml").exists():
+            return True
+        pyproject = current / "pyproject.toml"
+        if pyproject.exists():
+            try:
+                content = pyproject.read_text()
+                if "[tool.ruff]" in content:
+                    return True
+            except OSError:
+                pass
+        if current.parent == current:
+            break
+        current = current.parent
+    return False
+
+
 def check_python(file_path: Path) -> tuple[int, str]:
     """Check Python file with ruff. Returns (0, reason)."""
     if "test_" in file_path.name or "spec" in file_path.name:
         return 0, ""
 
     length_warning = check_file_length(file_path)
+
+    if not _has_ruff_config(file_path):
+        return 0, length_warning
 
     ruff_bin = shutil.which("ruff")
     if not ruff_bin:
