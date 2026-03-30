@@ -65,8 +65,8 @@ Spec: my-feature feature [implement] ████░░░░ 3/6 iter:2 [plan-r
 
 | Flag | Setting | What it controls |
 |------|---------|-----------------|
-| `plan-rev` | Plan Review agent | Validates plans before implementation (~50k tokens) |
-| `spec-rev` | Spec Review agent | Reviews code after implementation (~100k tokens) |
+| `plan-rev` | Plan Review agent | Validates plans before implementation |
+| `spec-rev` | Spec Review agent | Reviews code after implementation |
 | `wt` | Worktree Support | Isolates changes in a git worktree |
 
 Configure these in the [Pilot Console Settings](/docs/features/console#settings) tab or directly in `~/.pilot/config.json`.

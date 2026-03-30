@@ -124,22 +124,25 @@ Read the annotation file with the Read tool. If the file doesn't exist, treat as
 
 **⛔ MANDATORY before marking VERIFIED.**
 
+**⛔ MUST use `AskUserQuestion`** — the stop guard only allows stopping when it detects this tool in the transcript. Plain text output will cause the stop guard to block session exit while waiting for user feedback.
+
 1. Notify:
    ```bash
    ~/.pilot/bin/pilot notify plan_approval "Bugfix Verification Complete" "<plan-slug> — please review changes" --plan-path "<plan_path>" 2>/dev/null || true
    ```
 
-2. Tell the user:
-   ```
-   All automated checks passed. Please review the code changes in the Console's **Changes** tab.
-   You can leave inline annotations using the **Review** mode toggle — annotations save automatically.
+2. Summarize what was done (brief: fix applied, tests passed, verification results), then ask:
 
-   Say **"approve"** to mark verified, or **"fix"** to have me address your annotations (I'll read them directly from the Console).
+   ```
+   AskUserQuestion(
+     question="All automated checks passed. Please review the code changes in the Console's **Changes** tab.\n\nYou can leave inline annotations using the **Review** mode toggle — annotations save automatically.\n\n[brief summary of fix]\n\nChoose an option when done:",
+     options=["Approve — mark spec as verified", "Fix — address my annotations from the Console"]
+   )
    ```
 
-3. Wait for user response:
-   - "approve" / "lgtm" → proceed to Step 3.9
-   - "fix" / feedback → re-run Step 3.7b (check for code review annotations in JSON), fix issues, re-run tests, return to Step 3.8
+3. Handle response:
+   - "Approve" / "approve" / "lgtm" → proceed to Step 3.9
+   - "Fix" / feedback → re-run Step 3.7b (check for code review annotations in JSON), fix issues, re-run tests, return to Step 3.8
    - "continue" / "proceed" → treat as approval
 
 ### Step 3.9: Update Plan Status

@@ -417,24 +417,25 @@ Read the annotation file with the Read tool. If the file doesn't exist, treat as
 
 **⛔ MANDATORY before marking VERIFIED.** All automated checks pass — but the user should review the actual code changes.
 
+**⛔ MUST use `AskUserQuestion`** — the stop guard only allows stopping when it detects this tool in the transcript. Plain text output will cause the stop guard to block session exit while waiting for user feedback.
+
 1. Notify:
    ```bash
    ~/.pilot/bin/pilot notify plan_approval "Verification Complete — Review Changes" "<plan_name> — please review code in Changes tab" --plan-path "<plan_path>" 2>/dev/null || true
    ```
 
-2. Tell the user:
-   ```
-   All automated checks passed. Please review the code changes in the Console's **Changes** tab.
-   You can leave inline annotations on specific lines using the **Review** mode toggle — annotations save automatically.
+2. Summarize what was done (brief: changes made, tests passed, issues fixed), then ask:
 
-   When done:
-   - Say **"approve"** or **"lgtm"** to mark the spec as verified
-   - Say **"fix"** to have me address your annotations (I'll read them directly from the Console)
+   ```
+   AskUserQuestion(
+     question="All automated checks passed. Please review the code changes in the Console's **Changes** tab.\n\nYou can leave inline annotations on specific lines using the **Review** mode toggle — annotations save automatically.\n\n[brief summary of changes]\n\nChoose an option when done:",
+     options=["Approve — mark spec as verified", "Fix — address my annotations from the Console"]
+   )
    ```
 
-3. Wait for user response:
-   - "approve" / "lgtm" / "looks good" → proceed to Step 3.14
-   - "fix" / any feedback → re-run Step 3.12b (check for code review annotations in JSON), fix issues, re-run tests, return to Step 3.13
+3. Handle response:
+   - "Approve" / "approve" / "lgtm" / "looks good" → proceed to Step 3.14
+   - "Fix" / any feedback → re-run Step 3.12b (check for code review annotations in JSON), fix issues, re-run tests, return to Step 3.13
    - If user skips ("continue", "proceed") → treat as approval, proceed to Step 3.14
 
 ### Step 3.14: Update Plan Status

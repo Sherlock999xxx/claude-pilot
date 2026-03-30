@@ -93,10 +93,10 @@ Toggle for using the 1M token context window instead of 200K. Included at no add
 
 Two independent sub-agents that run in separate context windows during `/spec`:
 
-| Agent | Default | Token cost | Description |
-|-------|---------|------------|-------------|
-| **Plan Review** | On | ~50k tokens | Validates plans before implementation. Checks alignment with requirements and flags risky assumptions. |
-| **Spec Review** | On | ~100k tokens | Reviews code after implementation. Checks compliance, quality, and goal achievement. Reads all changed files. |
+| Agent | Default | Description |
+|-------|---------|-------------|
+| **Plan Review** | On | Validates plans before implementation. Checks alignment with requirements and flags risky assumptions. |
+| **Spec Review** | On | Reviews code after implementation. Checks compliance, quality, and goal achievement. Reads all changed files. |
 
 Each agent has its own model selector (Sonnet or Opus). Disabling an agent skips it entirely — no tokens consumed.
 

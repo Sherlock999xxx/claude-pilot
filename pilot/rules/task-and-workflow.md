@@ -191,15 +191,16 @@ Call after creating plan header, reading existing plan, and after status changes
 spec-verify (or spec-bugfix-verify) finds issues → Status: PENDING → spec-implement fixes → COMPLETE → verify → ... → VERIFIED
 ```
 
-### ⛔ Only THREE User Interaction Points
+### ⛔ Only FOUR User Interaction Points
 
 1. **Worktree Choice + Type Confirmation** (new plans only, in dispatcher — type only asked when ambiguous; skipped when `$PILOT_WORKTREE_ENABLED=false`)
 2. **Plan Approval** (in spec-plan or spec-bugfix-plan; skipped when `$PILOT_PLAN_APPROVAL_ENABLED=false`)
 3. **Worktree Sync Approval** (in spec-verify/spec-bugfix-verify, only when `Worktree: Yes`)
+4. **Code Review Gate** (in spec-verify Step 3.13 / spec-bugfix-verify Step 3.8 — uses `AskUserQuestion` so the stop guard allows session exit while waiting)
 
 Everything else is automatic. **NEVER ask "Should I fix these findings?"** — verification fixes are part of the approved plan.
 
-**Zero-interaction mode:** When `$PILOT_WORKTREE_ENABLED=false`, `$PILOT_PLAN_QUESTIONS_ENABLED=false`, and `$PILOT_PLAN_APPROVAL_ENABLED=false`, `/spec` runs completely autonomously from invocation to verified completion. Configure via Console Settings → Spec Workflow.
+**Zero-interaction mode:** When `$PILOT_WORKTREE_ENABLED=false`, `$PILOT_PLAN_QUESTIONS_ENABLED=false`, and `$PILOT_PLAN_APPROVAL_ENABLED=false`, `/spec` runs completely autonomously from invocation to verified completion (Code Review Gate remains active as the final quality gate). Configure via Console Settings → Spec Workflow.
 
 **Stop Guard:** When the stop guard blocks a stop during `/spec`, do NOT acknowledge it, output resume instructions, or say goodbye. Your **very next action** must be a tool call (TaskList, Read plan file, or code change). Never produce a text-only response after a stop block — immediately resume the current task or invoke the next phase. This also applies after user interruptions ("Continue", new messages mid-task) — re-read the plan and resume from where you left off.
 
