@@ -2,6 +2,13 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.8.2] - 2026-03-30
+
+### Bug Fixes
+
+- Agent-browser ARM64 Linux support, dynamic devcontainer naming
+- Ensure codegraph is in PATH via ~/.pilot/bin symlink
+
 ## [7.8.1] - 2026-03-28
 
 ### Bug Fixes
