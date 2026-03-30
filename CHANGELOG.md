@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.9.0] - 2026-03-30
+
+### Features
+
+- Add E2E encrypted spec sharing with collaborative annotation feedback
+
 ## [7.8.5] - 2026-03-30
 
 ### Bug Fixes
