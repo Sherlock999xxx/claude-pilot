@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import subprocess
+import time
 from pathlib import Path
 
 from installer import __version__
@@ -58,11 +59,14 @@ class FinalizeStep(BaseStep):
             pids = result.stdout.strip()
             if pids:
                 for pid in pids.splitlines():
-                    subprocess.run(
-                        ["kill", "-9", pid.strip()],
-                        capture_output=True,
-                        timeout=5,
-                    )
+                    p = pid.strip()
+                    # SIGTERM first for graceful shutdown
+                    subprocess.run(["kill", p], capture_output=True, timeout=5)
+                    time.sleep(1)
+                    # SIGKILL only if still alive
+                    alive = subprocess.run(["kill", "-0", p], capture_output=True, timeout=2)
+                    if alive.returncode == 0:
+                        subprocess.run(["kill", "-9", p], capture_output=True, timeout=5)
         except Exception:
             pass
 
@@ -95,6 +99,7 @@ class FinalizeStep(BaseStep):
                 steps.append(("🔄 Reload shell", f"{cmd_str} (or restart terminal)"))
 
         steps.append(("Claude Chrome Extension", "Install and enable for better browser automation"))
+        steps.append(("Codex Plugin (Optional)", "Adversarial review — install as additional Claude plugin"))
         steps.append(("Launch Pilot Shell", "Run 'pilot' in your project folder instead of 'claude'"))
         steps.append(("Pilot Shell Console", "Open the UI in your browser at: http://localhost:41777"))
         steps.append(("/spec", "Plan, implement & verify features and bug fixes (replaces CC plan mode)"))
