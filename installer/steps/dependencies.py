@@ -17,11 +17,20 @@ from installer.platform_utils import (
     is_linux_arm64,
     needs_sudo,
     npm_global_cmd,
+    start_sudo_keepalive,
+    stop_sudo_keepalive,
 )
 from installer.steps.base import BaseStep
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2
+GLOBAL_NPM_INSTALL_TIMEOUT = 300
+UV_TOOL_INSTALL_TIMEOUT = 180
+NPX_CACHE_WAIT_TIMEOUT = 180
+
+
+class _SudoReauthNeeded(Exception):
+    """Raised when sudo -n fails and credentials need re-priming outside the spinner."""
 
 _last_retry_stderr: str = ""
 
@@ -47,8 +56,11 @@ def _run_bash_with_retry(command: str, cwd: Path | None = None, timeout: int = 1
     for diagnostic display by the caller.
 
     When _allow_sudo_fallback is True and a sudo -n command fails with a
-    permission error, automatically retries with interactive sudo and
-    stream=True so the user can authenticate.
+    permission error, raises _SudoReauthNeeded so the caller can stop
+    the spinner, re-authenticate, and retry.
+
+    Note: stream=True commands inherit stdio (stderr not captured), so
+    sudo failures can't be detected — the user sees the error directly.
     """
     global _last_retry_stderr
     for attempt in range(MAX_RETRIES):
@@ -74,17 +86,13 @@ def _run_bash_with_retry(command: str, cwd: Path | None = None, timeout: int = 1
                 stderr = e.stderr if isinstance(e.stderr, str) else e.stderr.decode(errors="replace")
                 _last_retry_stderr = stderr
                 if _allow_sudo_fallback and "sudo:" in stderr and "sudo -n" in command:
-                    command = command.replace("sudo -n ", "sudo ", 1)
-                    stream = True
-                    continue
+                    raise _SudoReauthNeeded()
             if attempt < MAX_RETRIES - 1:
                 time.sleep(RETRY_DELAY)
             continue
         except subprocess.TimeoutExpired:
             _last_retry_stderr = f"Command timed out after {timeout}s"
-            if attempt < MAX_RETRIES - 1:
-                time.sleep(RETRY_DELAY)
-            continue
+            break
     return False
 
 
@@ -187,7 +195,10 @@ def _is_probe_installed() -> bool:
 def install_probe() -> bool:
     """Install Probe code search tool globally via npm."""
     if not _is_probe_installed():
-        if not _run_bash_with_retry(npm_global_cmd("npm install -g @probelabs/probe")):
+        if not _run_bash_with_retry(
+            npm_global_cmd("npm install -g @probelabs/probe"),
+            timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+        ):
             return False
 
     _symlink_to_pilot_bin("probe")
@@ -307,7 +318,7 @@ def _rebuild_better_sqlite3() -> bool:
     return _run_bash_with_retry(
         npm_global_cmd("npm rebuild better-sqlite3"),
         cwd=pkg_dir,
-        timeout=120,
+        timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
     )
 
 
@@ -316,7 +327,7 @@ def install_codegraph() -> bool:
     if not _is_codegraph_installed():
         if not _run_bash_with_retry(
             npm_global_cmd("npm install -g @colbymchenry/codegraph --force"),
-            timeout=120,
+            timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
         ):
             return False
     else:
@@ -407,14 +418,20 @@ def install_typescript_lsp() -> bool:
     """Install TypeScript language server and compiler globally."""
     if command_exists("vtsls"):
         return True
-    return _run_bash_with_retry(npm_global_cmd("npm install -g @vtsls/language-server typescript"))
+    return _run_bash_with_retry(
+        npm_global_cmd("npm install -g @vtsls/language-server typescript"),
+        timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+    )
 
 
 def install_prettier() -> bool:
     """Install prettier code formatter globally for TypeScript/JavaScript files."""
     if command_exists("prettier"):
         return True
-    return _run_bash_with_retry(npm_global_cmd("npm install -g prettier"))
+    return _run_bash_with_retry(
+        npm_global_cmd("npm install -g prettier"),
+        timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+    )
 
 
 def _install_go_via_apt() -> bool:
@@ -470,7 +487,10 @@ def install_ccusage() -> bool:
     """Install ccusage globally for usage tracking."""
     if command_exists("ccusage"):
         return True
-    return _run_bash_with_retry(npm_global_cmd("npm install -g ccusage@latest"))
+    return _run_bash_with_retry(
+        npm_global_cmd("npm install -g ccusage@latest"),
+        timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+    )
 
 
 def install_pbt_tools() -> bool:
@@ -482,7 +502,7 @@ def install_pbt_tools() -> bool:
     ok = True
 
     if not command_exists("hypothesis"):
-        if not _run_bash_with_retry("uv tool install hypothesis"):
+        if not _run_bash_with_retry("uv tool install hypothesis", timeout=UV_TOOL_INSTALL_TIMEOUT):
             ok = False
 
     if not command_exists("fast-check"):
@@ -494,10 +514,16 @@ def install_pbt_tools() -> bool:
                 timeout=15,
             )
             if result.returncode != 0 or "fast-check" not in result.stdout:
-                if not _run_bash_with_retry(npm_global_cmd("npm install -g fast-check")):
+                if not _run_bash_with_retry(
+                    npm_global_cmd("npm install -g fast-check"),
+                    timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+                ):
                     ok = False
         except Exception:
-            if not _run_bash_with_retry(npm_global_cmd("npm install -g fast-check")):
+            if not _run_bash_with_retry(
+                npm_global_cmd("npm install -g fast-check"),
+                timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+            ):
                 ok = False
 
     return ok
@@ -543,11 +569,31 @@ def install_agent_browser() -> bool:
 
 
 def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bool:
-    """Run an installation function with a spinner."""
+    """Run an installation function with a spinner.
+
+    If sudo credentials expire mid-install, the spinner is stopped so the
+    user can see the password prompt, credentials are re-primed, and the
+    install is retried once.
+    """
+    global _last_retry_stderr
     _clear_last_error()
     if ui:
-        with ui.spinner(f"Installing {name}..."):
-            result = install_fn(*args) if args else install_fn()
+        try:
+            with ui.spinner(f"Installing {name}..."):
+                result = install_fn(*args) if args else install_fn()
+        except _SudoReauthNeeded:
+            ui.status("sudo credentials expired — re-authenticating...")
+            if ensure_sudo_credentials():
+                start_sudo_keepalive()
+                try:
+                    with ui.spinner(f"Installing {name}..."):
+                        result = install_fn(*args) if args else install_fn()
+                except _SudoReauthNeeded:
+                    _last_retry_stderr = "sudo credentials expired — re-run the installer"
+                    result = False
+            else:
+                _last_retry_stderr = "sudo credentials expired — re-run the installer"
+                result = False
         if result:
             ui.success(f"{name} installed")
         else:
@@ -560,7 +606,18 @@ def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bo
                 ui.warning(f"Could not install {name} - please install manually")
         return result
     else:
-        return install_fn(*args) if args else install_fn()
+        try:
+            return install_fn(*args) if args else install_fn()
+        except _SudoReauthNeeded:
+            if ensure_sudo_credentials():
+                start_sudo_keepalive()
+                try:
+                    return install_fn(*args) if args else install_fn()
+                except _SudoReauthNeeded:
+                    _last_retry_stderr = "sudo credentials expired — re-run the installer"
+                    return False
+            _last_retry_stderr = "sudo credentials expired — re-run the installer"
+            return False
 
 
 def _install_plugin_dependencies(_project_dir: Path, ui: Any = None) -> bool:
@@ -684,7 +741,7 @@ def _precache_npx_mcp_servers(_ui: Any) -> bool:
     if not procs:
         return True
 
-    max_wait = 120
+    max_wait = NPX_CACHE_WAIT_TIMEOUT
     for _, proc in procs:
         try:
             proc.wait(timeout=max_wait)
@@ -734,71 +791,75 @@ class DependenciesStep(BaseStep):
         global _allow_sudo_fallback
         ui = ctx.ui
         installed: list[str] = []
-
-        if needs_sudo() and not ctx.non_interactive:
-            _allow_sudo_fallback = True
-            if ui:
-                ui.status("Some packages require elevated privileges — requesting sudo access...")
-            if not ensure_sudo_credentials():
+        try:
+            if needs_sudo() and not ctx.non_interactive:
+                _allow_sudo_fallback = True
                 if ui:
+                    ui.status("Some packages require elevated privileges — requesting sudo access...")
+                if ensure_sudo_credentials():
+                    start_sudo_keepalive()
+                elif ui:
                     ui.warning("Could not obtain sudo credentials — some installations may fail")
 
-        if _install_with_spinner(ui, "Claude Code", install_claude_code):
-            installed.append("claude_code")
+            if _install_with_spinner(ui, "Claude Code", install_claude_code):
+                installed.append("claude_code")
 
-        if _install_with_spinner(ui, "Node.js", install_nodejs):
-            installed.append("nodejs")
+            if _install_with_spinner(ui, "Node.js", install_nodejs):
+                installed.append("nodejs")
 
-        if _install_with_spinner(ui, "uv", install_uv):
-            installed.append("uv")
+            if _install_with_spinner(ui, "uv", install_uv):
+                installed.append("uv")
 
-        if _install_with_spinner(ui, "Python tools", install_python_tools):
-            installed.append("python_tools")
+            if _install_with_spinner(ui, "Python tools", install_python_tools):
+                installed.append("python_tools")
 
-        if _setup_pilot_memory(ui):
-            installed.append("pilot_memory")
+            if _setup_pilot_memory(ui):
+                installed.append("pilot_memory")
 
-        if _install_with_spinner(ui, "Plugin dependencies", _install_plugin_dependencies, ctx.project_dir, ui):
-            installed.append("plugin_deps")
+            if _install_with_spinner(ui, "Plugin dependencies", _install_plugin_dependencies, ctx.project_dir, ui):
+                installed.append("plugin_deps")
 
-        if _install_with_spinner(ui, "vtsls (TypeScript LSP server)", install_typescript_lsp):
-            installed.append("typescript_lsp")
+            if _install_with_spinner(ui, "vtsls (TypeScript LSP server)", install_typescript_lsp):
+                installed.append("typescript_lsp")
 
-        if _install_with_spinner(ui, "prettier (TypeScript formatter)", install_prettier):
-            installed.append("prettier")
+            if _install_with_spinner(ui, "prettier (TypeScript formatter)", install_prettier):
+                installed.append("prettier")
 
-        if _install_with_spinner(ui, "golangci-lint (Go linter)", install_golangci_lint):
-            installed.append("golangci_lint")
+            if _install_with_spinner(ui, "golangci-lint (Go linter)", install_golangci_lint):
+                installed.append("golangci_lint")
 
-        if _install_with_spinner(ui, "PBT tools (hypothesis, fast-check)", install_pbt_tools):
-            installed.append("pbt_tools")
+            if _install_with_spinner(ui, "PBT tools (hypothesis, fast-check)", install_pbt_tools):
+                installed.append("pbt_tools")
 
-        if _install_with_spinner(ui, "ccusage (usage tracking)", install_ccusage):
-            installed.append("ccusage")
+            if _install_with_spinner(ui, "ccusage (usage tracking)", install_ccusage):
+                installed.append("ccusage")
 
-        if _install_with_spinner(ui, "agent-browser (browser automation)", install_agent_browser):
-            installed.append("agent_browser")
+            if _install_with_spinner(ui, "agent-browser (browser automation)", install_agent_browser):
+                installed.append("agent_browser")
 
-        if _install_with_spinner(ui, "Probe (code search)", install_probe):
-            installed.append("probe")
+            if _install_with_spinner(ui, "Probe (code search)", install_probe):
+                installed.append("probe")
 
-        if _install_with_spinner(ui, "RTK (token optimizer)", install_rtk):
-            installed.append("rtk")
+            if _install_with_spinner(ui, "RTK (token optimizer)", install_rtk):
+                installed.append("rtk")
 
-        if _install_with_spinner(ui, "CodeGraph (code intelligence)", install_codegraph):
-            installed.append("codegraph")
+            if _install_with_spinner(ui, "CodeGraph (code intelligence)", install_codegraph):
+                installed.append("codegraph")
 
-        needs_work = codegraph_needs_work(ctx.project_dir)
-        if needs_work and ui:
-            ui.status("Initializing CodeGraph (indexing may take a few minutes)...")
-        if initialize_codegraph(ctx.project_dir):
+            needs_work = codegraph_needs_work(ctx.project_dir)
             if needs_work and ui:
-                ui.success("CodeGraph project initialized")
-            installed.append("codegraph_init")
-        elif ui:
-            ui.warning("Could not initialize CodeGraph - please run 'codegraph init -i' manually")
+                ui.status("Initializing CodeGraph (indexing may take a few minutes)...")
+            if initialize_codegraph(ctx.project_dir):
+                if needs_work and ui:
+                    ui.success("CodeGraph project initialized")
+                installed.append("codegraph_init")
+            elif ui:
+                ui.warning("Could not initialize CodeGraph - please run 'codegraph init -i' manually")
 
-        if _install_with_spinner(ui, "MCP server packages", _precache_npx_mcp_servers, ui):
-            installed.append("mcp_npx_cache")
+            if _install_with_spinner(ui, "MCP server packages", _precache_npx_mcp_servers, ui):
+                installed.append("mcp_npx_cache")
 
-        ctx.config["installed_dependencies"] = installed
+            ctx.config["installed_dependencies"] = installed
+        finally:
+            stop_sudo_keepalive()
+            _allow_sudo_fallback = False

@@ -60,6 +60,8 @@ class FinalizeStep(BaseStep):
             if pids:
                 for pid in pids.splitlines():
                     p = pid.strip()
+                    if not re.fullmatch(r"\d+", p):
+                        continue
                     # SIGTERM first for graceful shutdown
                     subprocess.run(["kill", p], capture_output=True, timeout=5)
                     time.sleep(1)

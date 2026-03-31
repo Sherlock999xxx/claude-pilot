@@ -50,7 +50,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 **Chrome Extension (Recommended):** Install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for browser automation and E2E testing. Pilot automatically detects it and prefers it over [agent-browser](https://agent-browser.dev/). In environments where the extension can't be installed (dev containers, headless CI), Pilot falls back to [agent-browser](https://agent-browser.dev/) automatically.
 
-**Codex Plugin (Optional):** Install the [Codex plugin](https://github.com/openai/codex-plugin-cc) for adversarial code review powered by OpenAI Codex. When enabled in Console Settings, Codex provides an independent second opinion during `/spec` planning and verification phases. Pilot auto-detects the plugin — enable the Codex reviewers in Settings when ready.
+**Codex Plugin (Optional):** Install the [Codex plugin](https://github.com/openai/codex-plugin-cc) for adversarial code review powered by OpenAI Codex. When enabled in Console Settings, Codex provides an independent second opinion during `/spec` planning and verification phases. A [ChatGPT Plus](https://chatgpt.com/#pricing) subscription ($20/mo) covers the Codex API usage needed for code reviews.
 
 ### Installation
 

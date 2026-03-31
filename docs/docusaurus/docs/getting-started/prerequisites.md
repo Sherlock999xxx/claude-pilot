@@ -33,6 +33,8 @@ claude plugin install @openai/codex
 
 After installation, run `/codex:setup` and enable the Codex reviewers in Console Settings → Spec Workflow → Codex Reviewers. Pilot auto-detects the plugin — Codex reviewer cards appear grayed out until the plugin is installed, then become toggleable.
 
+A [ChatGPT Plus](https://chatgpt.com/#pricing) subscription ($20/mo) covers the Codex API usage needed for code reviews.
+
 ## System Requirements
 
 Pilot installs once and works across all your projects. Each project can have its own `.claude/` rules and skills.

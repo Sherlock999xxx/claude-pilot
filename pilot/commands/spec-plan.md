@@ -40,7 +40,7 @@ hooks:
 echo "QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED REVIEWER=$PILOT_SPEC_REVIEW_ENABLED CODEX_SPEC=$PILOT_CODEX_SPEC_REVIEW_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
 ```
 
-Reference these values throughout: Steps 1.2/1.4 (questions), 1.7 (reviewer + Codex), and 1.8 (approval).
+Reference these values throughout: Steps 1.2/1.4 (questions), 1.7 (reviewer + Codex — Codex controlled by Console Settings), and 1.8 (approval).
 
 ---
 
@@ -76,7 +76,7 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
 
 ### Step 1.1: Create Plan File Header (FIRST)
 
-1. **Parse flags** from arguments: `--worktree=yes|no` (default: `Yes`), `--codex=yes|no` (default: `no`). Strip both flags from task description.
+1. **Parse flags** from arguments: `--worktree=yes|no` (default: `Yes`). Strip the flag from task description.
 
 2. **Create worktree early (if yes):**
 
@@ -110,7 +110,6 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
    Approved: No
    Iterations: 0
    Worktree: [Yes|No]
-   Codex: [Yes|No]
    Type: Feature
 
    > Planning in progress...

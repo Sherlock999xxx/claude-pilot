@@ -44,7 +44,7 @@ For adversarial code review powered by OpenAI Codex, install the [Codex plugin](
 claude plugin install @openai/codex
 ```
 
-After installation, run `/codex:setup` and enable the Codex reviewers in Console Settings → Spec Workflow → Codex Reviewers. Pilot auto-detects the plugin — when enabled, Codex provides an independent second opinion during `/spec` planning and verification phases.
+After installation, run `/codex:setup` and enable the Codex reviewers in Console Settings → Spec Workflow → Codex Reviewers. Pilot auto-detects the plugin — when enabled, Codex provides an independent second opinion during `/spec` planning and verification phases. A [ChatGPT Plus](https://chatgpt.com/#pricing) subscription ($20/mo) covers the Codex API usage needed for code reviews.
 
 ## Dev Container
 

@@ -33,13 +33,13 @@ hooks:
 
 ## Step 0: Read Toggle Configuration
 
-**⛔ Run FIRST, before any other step.** Read the reviewer toggle env var:
+**⛔ Run FIRST, before any other step.** Read the reviewer toggle env vars:
 
 ```bash
 echo "REVIEWER=$PILOT_CHANGES_REVIEW_ENABLED CODEX_CHG=$PILOT_CODEX_CHANGES_REVIEW_ENABLED"
 ```
 
-**Then read the `Codex:` field from the plan header.** If `Codex: No` (or absent), override `CODEX_CHG` to `"false"` regardless of the env var. The user opted out of Codex for this session at `/spec` start.
+Codex reviewers are controlled entirely by Console Settings — the env vars are authoritative.
 
 Reference these values in Steps 3.1, 3.4, and 3.5.
 

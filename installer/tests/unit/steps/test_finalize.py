@@ -132,6 +132,27 @@ class TestKillStaleWorker:
 
         FinalizeStep._kill_stale_worker()  # must not raise
 
+    @patch("installer.steps.finalize.time.sleep")
+    @patch("installer.steps.finalize.subprocess.run")
+    def test_skips_invalid_pid_from_lsof(self, mock_run, _mock_sleep):
+        """Ignores non-numeric PID lines from lsof output."""
+        from installer.steps.finalize import FinalizeStep
+
+        mock_run.side_effect = [
+            MagicMock(stdout="1234\n; rm -rf /\nabc\n"),  # lsof returns mixed output
+            MagicMock(),  # SIGTERM 1234
+            MagicMock(returncode=1),  # kill -0 1234 (dead)
+        ]
+
+        FinalizeStep._kill_stale_worker()
+
+        # Only "1234" should be killed — malicious lines skipped
+        kill_calls = [c for c in mock_run.call_args_list if c[0][0][0] == "kill"]
+        pid_args = [c[0][0][1] for c in kill_calls]
+        assert "; rm -rf /" not in pid_args
+        assert "abc" not in pid_args
+        assert "1234" in pid_args
+
 
 class TestFinalSuccessPanel:
     """Test final success panel display."""

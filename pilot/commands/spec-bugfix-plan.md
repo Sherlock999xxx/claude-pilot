@@ -50,7 +50,7 @@ If you haven't completed Step 1.2, you cannot propose fixes. Symptom fixes are f
 echo "QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED CODEX_SPEC=$PILOT_CODEX_SPEC_REVIEW_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
 ```
 
-Reference these values throughout: Steps 1.2.1/1.2.5 (questions), 1.4c (Codex), and 1.5 (approval).
+Reference these values throughout: Steps 1.2.1/1.2.5 (questions), 1.4c (Codex — controlled by Console Settings), and 1.5 (approval).
 
 ---
 
@@ -70,7 +70,7 @@ If you catch yourself thinking any of these, STOP. Return to Step 1.2.
 
 ## Step 1.1: Create Plan File Header (FIRST)
 
-1. **Parse flags** from arguments: `--worktree=yes|no` (default: `No`), `--codex=yes|no` (default: `no`). Strip both flags.
+1. **Parse flags** from arguments: `--worktree=yes|no` (default: `No`). Strip the flag.
 2. **Create worktree early (if yes):** Same pattern as spec-plan Step 1.1.
 3. **Generate filename:** `docs/plans/YYYY-MM-DD-<bug-slug>.md`
 4. **Fetch author email** (best-effort): same as spec-plan Step 1.1 step 4. If non-empty, include `Author: <email>` in header. If empty/fails, omit.
@@ -85,7 +85,6 @@ If you catch yourself thinking any of these, STOP. Return to Step 1.2.
    Approved: No
    Iterations: 0
    Worktree: [Yes|No]
-   Codex: [Yes|No]
    Type: Bugfix
 
    > Investigating bug...

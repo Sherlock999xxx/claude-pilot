@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import threading
 from pathlib import Path
 
 
@@ -97,6 +98,57 @@ def ensure_sudo_credentials() -> bool:
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
         return False
+
+
+_sudo_keepalive_stop: threading.Event | None = None
+_sudo_keepalive_thread: threading.Thread | None = None
+
+
+def start_sudo_keepalive() -> None:
+    """Start a background thread that refreshes sudo credentials every 60s.
+
+    macOS caches sudo credentials for ~5 minutes by default. Long install
+    sequences exceed this, causing `sudo -n` to fail and interactive sudo
+    to hang inside spinners where the user can't see the password prompt.
+
+    Call stop_sudo_keepalive() when elevated operations are done.
+    """
+    global _sudo_keepalive_stop, _sudo_keepalive_thread
+
+    if _sudo_keepalive_thread is not None and _sudo_keepalive_thread.is_alive():
+        return
+
+    _sudo_keepalive_stop = None
+    _sudo_keepalive_thread = None
+
+    _sudo_keepalive_stop = threading.Event()
+    stop_event = _sudo_keepalive_stop
+
+    def _keepalive() -> None:
+        while not stop_event.wait(timeout=60):
+            try:
+                subprocess.run(
+                    ["sudo", "-vn"],
+                    capture_output=True,
+                    timeout=5,
+                )
+            except Exception:
+                pass
+
+    _sudo_keepalive_thread = threading.Thread(target=_keepalive, daemon=True)
+    _sudo_keepalive_thread.start()
+
+
+def stop_sudo_keepalive() -> None:
+    """Stop the sudo keepalive background thread."""
+    global _sudo_keepalive_stop, _sudo_keepalive_thread
+
+    if _sudo_keepalive_stop is not None:
+        _sudo_keepalive_stop.set()
+    if _sudo_keepalive_thread is not None and _sudo_keepalive_thread.is_alive():
+        _sudo_keepalive_thread.join(timeout=5)
+    _sudo_keepalive_stop = None
+    _sudo_keepalive_thread = None
 
 
 def is_homebrew_available() -> bool:

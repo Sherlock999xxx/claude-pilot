@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import subprocess
 import tempfile
+
+import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -217,6 +219,17 @@ class TestProbeInstall:
         call_args = mock_bash.call_args[0][0]
         assert "@probelabs/probe" in call_args
 
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies._is_probe_installed", return_value=False)
+    def test_install_probe_uses_longer_timeout(self, _mock_installed, mock_bash):
+        """Probe install gets a longer timeout because npm downloads can be slow."""
+        from installer.steps.dependencies import GLOBAL_NPM_INSTALL_TIMEOUT, install_probe
+
+        result = install_probe()
+
+        assert result is True
+        assert mock_bash.call_args.kwargs["timeout"] == GLOBAL_NPM_INSTALL_TIMEOUT
+
     @patch("installer.steps.dependencies._run_bash_with_retry")
     @patch("installer.steps.dependencies._is_probe_installed")
     def test_install_probe_returns_false_on_failure(self, mock_installed, mock_bash):
@@ -314,6 +327,19 @@ class TestInstallCodegraph:
         call_args = str(mock_bash.call_args)
         assert "@colbymchenry/codegraph" in call_args
         assert "--force" in call_args
+        mock_symlink.assert_called_once_with("codegraph")
+
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
+    @patch("installer.steps.dependencies._is_codegraph_installed", return_value=False)
+    def test_install_codegraph_uses_longer_timeout(self, _mock_check, mock_symlink):
+        """CodeGraph install gets a longer timeout because it can build native modules."""
+        from installer.steps.dependencies import GLOBAL_NPM_INSTALL_TIMEOUT, install_codegraph
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
+            result = install_codegraph()
+
+        assert result is True
+        assert mock_bash.call_args.kwargs["timeout"] == GLOBAL_NPM_INSTALL_TIMEOUT
         mock_symlink.assert_called_once_with("codegraph")
 
     @patch("installer.steps.dependencies._symlink_to_pilot_bin")
@@ -1133,6 +1159,26 @@ class TestInstallPbtTools:
         assert any("hypothesis" in c for c in calls)
         assert any("fast-check" in c for c in calls)
 
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    def test_install_pbt_tools_uses_longer_timeouts(self, _mock_cmd, mock_run, mock_sub):
+        """Hypothesis and fast-check installs use timeouts sized for package downloads."""
+        from installer.steps.dependencies import (
+            GLOBAL_NPM_INSTALL_TIMEOUT,
+            UV_TOOL_INSTALL_TIMEOUT,
+            install_pbt_tools,
+        )
+
+        mock_sub.return_value = MagicMock(returncode=1, stdout="")
+
+        result = install_pbt_tools()
+
+        assert result is True
+        timeout_by_command = {call.args[0]: call.kwargs["timeout"] for call in mock_run.call_args_list}
+        assert timeout_by_command["uv tool install hypothesis"] == UV_TOOL_INSTALL_TIMEOUT
+        assert timeout_by_command["npm install -g fast-check"] == GLOBAL_NPM_INSTALL_TIMEOUT
+
     @patch("installer.steps.dependencies.command_exists", return_value=True)
     def test_install_pbt_tools_returns_true_when_all_present(self, _mock_cmd):
         """install_pbt_tools returns True when all binaries already exist."""
@@ -1159,25 +1205,18 @@ class TestRunBashWithRetrySudoFallback:
     """Test sudo -n to sudo fallback in _run_bash_with_retry."""
 
     @patch("installer.steps.dependencies.subprocess.run")
-    def test_sudo_fallback_replaces_sudo_n_with_sudo_on_permission_error(self, mock_run):
-        """When sudo -n fails with permission error and fallback enabled, retries with sudo."""
+    def test_sudo_fallback_raises_reauth_exception(self, mock_run):
+        """When sudo -n fails with permission error, raises _SudoReauthNeeded."""
         import installer.steps.dependencies as deps
-        from installer.steps.dependencies import _run_bash_with_retry
+        from installer.steps.dependencies import _SudoReauthNeeded, _run_bash_with_retry
 
         deps._allow_sudo_fallback = True
         try:
-            # First call: sudo -n fails with permission error
-            # Second call: sudo (interactive) succeeds
-            mock_run.side_effect = [
-                subprocess.CalledProcessError(1, "cmd", stderr=b"sudo: a password is required"),
-                None,  # success
-            ]
-            result = _run_bash_with_retry("sudo -n npm install -g probe")
-            assert result is True
-            # Second call should use sudo without -n
-            second_call_cmd = mock_run.call_args_list[1][0][0]
-            assert "sudo -n" not in " ".join(second_call_cmd)
-            assert "sudo npm" in " ".join(second_call_cmd)
+            mock_run.side_effect = subprocess.CalledProcessError(
+                1, "cmd", stderr=b"sudo: a password is required"
+            )
+            with pytest.raises(_SudoReauthNeeded):
+                _run_bash_with_retry("sudo -n npm install -g probe")
         finally:
             deps._allow_sudo_fallback = False
 
@@ -1263,3 +1302,229 @@ class TestErrorCapture:
         ui.warning.assert_called_once()
         assert "TestPkg" in ui.warning.call_args[0][0]
         ui.info.assert_not_called()
+
+
+class TestInstallWithSpinnerSudoReauth:
+    """Test _install_with_spinner handling of sudo re-authentication."""
+
+    @patch("installer.steps.dependencies.start_sudo_keepalive")
+    @patch("installer.steps.dependencies.ensure_sudo_credentials", return_value=True)
+    def test_reauth_succeeds_retries_install(self, mock_ensure, mock_keepalive):
+        """When sudo reauth succeeds, retries install outside spinner and succeeds."""
+        from installer.steps.dependencies import _SudoReauthNeeded, _install_with_spinner
+
+        ui = MagicMock()
+        call_count = 0
+
+        def install_fn():
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise _SudoReauthNeeded()
+            return True
+
+        result = _install_with_spinner(ui, "TestPkg", install_fn)
+        assert result is True
+        assert call_count == 2
+        mock_ensure.assert_called_once()
+        mock_keepalive.assert_called_once()
+        ui.status.assert_called_once()
+        assert "re-authenticating" in ui.status.call_args[0][0]
+        ui.success.assert_called_once()
+
+    @patch("installer.steps.dependencies.ensure_sudo_credentials", return_value=False)
+    def test_reauth_fails_reports_error(self, mock_ensure):
+        """When sudo reauth fails, reports clear error without hanging."""
+        import installer.steps.dependencies as deps
+        from installer.steps.dependencies import _SudoReauthNeeded, _install_with_spinner
+
+        ui = MagicMock()
+
+        def install_fn():
+            raise _SudoReauthNeeded()
+
+        result = _install_with_spinner(ui, "TestPkg", install_fn)
+        assert result is False
+        mock_ensure.assert_called_once()
+        assert "sudo credentials expired" in deps._last_retry_stderr
+        ui.warning.assert_called_once()
+
+    @patch("installer.steps.dependencies.start_sudo_keepalive")
+    @patch("installer.steps.dependencies.ensure_sudo_credentials", return_value=True)
+    def test_reauth_succeeds_but_retry_also_fails_does_not_crash(self, mock_ensure, mock_keepalive):
+        """When reauth succeeds but retry also raises _SudoReauthNeeded, fails cleanly."""
+        import installer.steps.dependencies as deps
+        from installer.steps.dependencies import _SudoReauthNeeded, _install_with_spinner
+
+        ui = MagicMock()
+
+        def install_fn():
+            raise _SudoReauthNeeded()
+
+        result = _install_with_spinner(ui, "TestPkg", install_fn)
+        assert result is False
+        assert "sudo credentials expired" in deps._last_retry_stderr
+
+
+class TestDependenciesCleanup:
+    """Lifecycle cleanup around sudo state."""
+
+    @patch("installer.steps.dependencies.stop_sudo_keepalive")
+    @patch("installer.steps.dependencies.start_sudo_keepalive")
+    @patch("installer.steps.dependencies.ensure_sudo_credentials", return_value=True)
+    @patch("installer.steps.dependencies.needs_sudo", return_value=True)
+    @patch("installer.steps.dependencies.install_claude_code", side_effect=RuntimeError("boom"))
+    def test_run_resets_sudo_state_on_exception(
+        self,
+        _mock_install,
+        _mock_needs_sudo,
+        _mock_ensure,
+        mock_start,
+        mock_stop,
+    ):
+        """Dependency step always tears down keepalive and sudo fallback state."""
+        import installer.steps.dependencies as deps
+        from installer.context import InstallContext
+        from installer.steps.dependencies import DependenciesStep
+        from installer.ui import Console
+
+        deps._allow_sudo_fallback = False
+        step = DependenciesStep()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ctx = InstallContext(
+                project_dir=Path(tmpdir),
+                ui=Console(non_interactive=False),
+            )
+
+            with pytest.raises(RuntimeError, match="boom"):
+                step.run(ctx)
+
+        mock_start.assert_called_once()
+        mock_stop.assert_called_once()
+        assert deps._allow_sudo_fallback is False
+
+    @patch("installer.steps.dependencies.stop_sudo_keepalive")
+    @patch("installer.steps.dependencies.start_sudo_keepalive")
+    @patch("installer.steps.dependencies.ensure_sudo_credentials", side_effect=[True, True])
+    @patch("installer.steps.dependencies.needs_sudo", return_value=True)
+    @patch("installer.steps.dependencies._precache_npx_mcp_servers", return_value=True)
+    @patch("installer.steps.dependencies.initialize_codegraph", return_value=True)
+    @patch("installer.steps.dependencies.codegraph_needs_work", return_value=False)
+    @patch("installer.steps.dependencies.install_codegraph", return_value=True)
+    @patch("installer.steps.dependencies.install_rtk", return_value=True)
+    @patch("installer.steps.dependencies.install_agent_browser", return_value=True)
+    @patch("installer.steps.dependencies.install_ccusage", return_value=True)
+    @patch("installer.steps.dependencies.install_pbt_tools", return_value=True)
+    @patch("installer.steps.dependencies.install_golangci_lint", return_value=True)
+    @patch("installer.steps.dependencies.install_prettier", return_value=True)
+    @patch("installer.steps.dependencies.install_typescript_lsp", return_value=True)
+    @patch("installer.steps.dependencies._install_plugin_dependencies", return_value=True)
+    @patch("installer.steps.dependencies._setup_pilot_memory", return_value=True)
+    @patch("installer.steps.dependencies.install_python_tools", return_value=True)
+    @patch("installer.steps.dependencies.install_uv", return_value=True)
+    @patch("installer.steps.dependencies.install_nodejs", return_value=True)
+    @patch("installer.steps.dependencies.install_claude_code", return_value=True)
+    def test_run_reauths_after_spinner_closes_and_continues(
+        self,
+        _mock_claude,
+        _mock_node,
+        _mock_uv,
+        _mock_python,
+        _mock_memory,
+        _mock_plugin_deps,
+        _mock_ts_lsp,
+        _mock_prettier,
+        _mock_golangci,
+        _mock_pbt,
+        _mock_ccusage,
+        _mock_agent_browser,
+        _mock_rtk,
+        _mock_codegraph,
+        _mock_needs_work,
+        _mock_initialize_codegraph,
+        _mock_precache,
+        _mock_needs_sudo,
+        mock_ensure,
+        mock_start,
+        mock_stop,
+    ):
+        """A sudo expiry during one package install closes the spinner, reauths, and completes."""
+        from contextlib import contextmanager
+
+        import installer.steps.dependencies as deps
+        from installer.context import InstallContext
+        from installer.steps.dependencies import DependenciesStep
+
+        class RecordingUI:
+            quiet = False
+
+            def __init__(self) -> None:
+                self.events: list[tuple[str, str]] = []
+
+            @contextmanager
+            def spinner(self, message: str):
+                self.events.append(("spinner_start", message))
+                try:
+                    yield
+                finally:
+                    self.events.append(("spinner_end", message))
+
+            def status(self, message: str) -> None:
+                self.events.append(("status", message))
+
+            def success(self, message: str) -> None:
+                self.events.append(("success", message))
+
+            def warning(self, message: str) -> None:
+                self.events.append(("warning", message))
+
+            def info(self, message: str) -> None:
+                self.events.append(("info", message))
+
+        ui = RecordingUI()
+        step = DependenciesStep()
+        deps._allow_sudo_fallback = False
+
+        probe_attempts = 0
+
+        def flaky_probe() -> bool:
+            nonlocal probe_attempts
+            probe_attempts += 1
+            if probe_attempts == 1:
+                raise deps._SudoReauthNeeded()
+            return True
+
+        with patch("installer.steps.dependencies.install_probe", side_effect=flaky_probe):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                ctx = InstallContext(
+                    project_dir=Path(tmpdir),
+                    non_interactive=False,
+                    ui=ui,
+                )
+                step.run(ctx)
+
+        assert probe_attempts == 2
+        assert mock_ensure.call_count == 2
+        assert mock_start.call_count == 2
+        mock_stop.assert_called_once()
+        assert deps._allow_sudo_fallback is False
+        assert "probe" in ctx.config["installed_dependencies"]
+
+        probe_flow = [
+            event
+            for event in ui.events
+            if event[1] in {
+                "Installing Probe (code search)...",
+                "sudo credentials expired — re-authenticating...",
+                "Probe (code search) installed",
+            }
+        ]
+        assert probe_flow == [
+            ("spinner_start", "Installing Probe (code search)..."),
+            ("spinner_end", "Installing Probe (code search)..."),
+            ("status", "sudo credentials expired — re-authenticating..."),
+            ("spinner_start", "Installing Probe (code search)..."),
+            ("spinner_end", "Installing Probe (code search)..."),
+            ("success", "Probe (code search) installed"),
+        ]
