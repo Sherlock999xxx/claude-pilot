@@ -2,6 +2,17 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.10.0] - 2026-03-31
+
+### Bug Fixes
+
+- Security audit hardening across console, launcher, and installer
+- Improve Codex CLI invocation and reviewer agent prompting 
+
+### Features
+
+- Codex adversarial reviewers, spec sharing, and Console improvements 
+
 ## [7.9.0] - 2026-03-30
 
 ### Features
