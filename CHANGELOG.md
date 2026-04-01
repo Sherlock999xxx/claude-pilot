@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.11.0] - 2026-04-01
+
+### Features
+
+- Rename /shape to /prd, add tiered research, fix Console PRD view, restructure docs
+
 ## [7.10.2] - 2026-04-01
 
 ### Bug Fixes
