@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-CURRENT_CONFIG_VERSION = 7
+CURRENT_CONFIG_VERSION = 8
 
 _STALE_AGENT_KEYS = frozenset(
     {
@@ -70,6 +70,9 @@ def migrate_model_config(config_path: Path | None = None) -> bool:
 
     if version < 7:
         modified = _migration_v7(raw) or modified
+
+    if version < 8:
+        modified = _migration_v8(raw) or modified
 
     if raw.get("_configVersion") != CURRENT_CONFIG_VERSION:
         raw["_configVersion"] = CURRENT_CONFIG_VERSION
@@ -322,6 +325,36 @@ def _migration_v7(raw: dict[str, Any]) -> bool:
 
     if "codexReviewers" not in raw:
         raw["codexReviewers"] = {"specReview": False, "changesReview": False}
+        modified = True
+
+    return modified
+
+
+def _migration_v8(raw: dict[str, Any]) -> bool:
+    """v7 → v8: Rename "commands" → "skills" and default all skill models to opus.
+
+    - Renames the config key from "commands" to "skills" for consistency
+      with the new skill-based architecture.
+    - Sets all skill models to opus (previously spec, spec-implement, and
+      spec-verify defaulted to sonnet). Users who explicitly changed a model
+      to sonnet keep their choice — only the old defaults are migrated.
+    - Ensures extendedContext is true for 1M context.
+    """
+    modified = False
+
+    if "commands" in raw and "skills" not in raw:
+        raw["skills"] = raw.pop("commands")
+        modified = True
+
+    skills = raw.get("skills")
+    if isinstance(skills, dict):
+        for skill_name in ("spec", "spec-implement", "spec-verify"):
+            if skills.get(skill_name) == "sonnet":
+                skills[skill_name] = "opus"
+                modified = True
+
+    if raw.get("extendedContext") is not True:
+        raw["extendedContext"] = True
         modified = True
 
     return modified

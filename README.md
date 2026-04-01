@@ -46,6 +46,8 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 ### Prerequisites
 
+**Claude Code:** Install [Claude Code](https://code.claude.com/docs/en/quickstart) using the **native installer** before setting up Pilot Shell. If you have the `npm` or `brew` version installed, uninstall it first. If no Claude Code installation is detected, the Pilot installer will attempt to set it up for you.
+
 **Claude Subscription:** Solo developers should choose [Max 5x](https://claude.com/pricing) for moderate usage or [Max 20x](https://claude.com/pricing) for heavy usage. Teams should use [Team Premium](https://claude.com/pricing) (6.25x usage per member, SSO, admin tools, billing management). Companies with stricter compliance or procurement requirements should use [Enterprise](https://claude.com/pricing) (API based pricing applies per usage).
 
 **Chrome Extension (Recommended):** Install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for browser automation and E2E testing. Pilot automatically detects it and prefers it over [agent-browser](https://agent-browser.dev/). In environments where the extension can't be installed (dev containers, headless CI), Pilot falls back to [agent-browser](https://agent-browser.dev/) automatically.

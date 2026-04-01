@@ -32,6 +32,7 @@ NPX_CACHE_WAIT_TIMEOUT = 180
 class _SudoReauthNeeded(Exception):
     """Raised when sudo -n fails and credentials need re-priming outside the spinner."""
 
+
 _last_retry_stderr: str = ""
 
 _allow_sudo_fallback: bool = False

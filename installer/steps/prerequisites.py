@@ -38,8 +38,6 @@ HOMEBREW_PACKAGES = [
     "rtk",
 ]
 
-# Packages with pinned major versions — upgrading could jump to an incompatible version.
-# These are installed once and only upgraded manually.
 HOMEBREW_NO_UPGRADE_PACKAGES = {"python@3.12", "node@22", "nvm", "git", "gh"}
 
 
@@ -204,7 +202,6 @@ def _get_outdated_homebrew_packages(packages: list[str]) -> set[str]:
         if result.returncode != 0:
             return set()
         outdated = set(result.stdout.decode().splitlines())
-        # brew outdated uses short names — match against our package list
         return {p for p in packages if any(p == o or p.startswith(o + "@") or o.startswith(p) for o in outdated)}
     except (subprocess.SubprocessError, OSError):
         return set()
@@ -371,7 +368,6 @@ class PrerequisitesStep(BaseStep):
                 if not command_exists(cmd):
                     return False
 
-        # All packages installed — check if any upgradeable ones are outdated
         upgradeable = [p for p in HOMEBREW_PACKAGES if p not in HOMEBREW_NO_UPGRADE_PACKAGES]
         if upgradeable:
             if ui:

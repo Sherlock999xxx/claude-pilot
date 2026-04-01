@@ -1,4 +1,5 @@
 ---
+name: spec-plan
 description: "Spec planning phase - explore codebase, design plan, get approval"
 argument-hint: "<task description> or <path/to/plan.md>"
 user-invocable: false

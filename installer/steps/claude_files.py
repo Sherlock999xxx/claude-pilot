@@ -30,6 +30,7 @@ SETTINGS_FILE = "settings.json"
 SETTINGS_BASELINE_FILE = ".pilot-settings-baseline.json"
 PILOT_MANIFEST_FILE = ".pilot-manifest.json"
 
+
 REPO_URL = "https://github.com/maxritter/pilot-shell"
 
 SKIP_PATTERNS = (
@@ -96,8 +97,8 @@ def _categorize_file(file_path: str) -> str:
     """Determine which category a file belongs to."""
     if file_path == "pilot/settings.json" or file_path.endswith("/settings.json"):
         return "settings"
-    elif "/commands/" in file_path:
-        return "commands"
+    elif "/skills/" in file_path:
+        return "skills"
     elif "/rules/" in file_path:
         return "rules"
     else:
@@ -196,7 +197,7 @@ class ClaudeFilesStep(BaseStep):
     def _categorize_files(self, pilot_files: list[FileInfo], ctx: InstallContext) -> dict[str, list[FileInfo]]:
         """Categorize files and filter out ones to skip."""
         categories: dict[str, list[FileInfo]] = {
-            "commands": [],
+            "skills": [],
             "rules": [],
             "pilot_plugin": [],
             "settings": [],
@@ -228,8 +229,6 @@ class ClaudeFilesStep(BaseStep):
 
         self._cleanup_legacy_standards_skills(home_pilot_plugin_dir)
 
-        # Always clear ~/.claude/pilot/ — it's the installed destination, never the source repo.
-        # This removes stale files (e.g. deleted agents) that would otherwise persist.
         _clear_directory_contents(home_pilot_plugin_dir)
 
         source_is_destination = (
@@ -242,6 +241,7 @@ class ClaudeFilesStep(BaseStep):
         if not manifest_path.exists():
             self._seed_manifest_from_existing(home_claude_dir, manifest_path)
         cleanup_managed_files(home_claude_dir / "commands", manifest_path, "commands/")
+        cleanup_managed_files(home_claude_dir / "skills", manifest_path, "skills/")
         cleanup_managed_files(home_claude_dir / "rules", manifest_path, "rules/")
 
     def _cleanup_legacy_standards_skills(self, plugin_dir: Path) -> None:
@@ -297,7 +297,7 @@ class ClaudeFilesStep(BaseStep):
         failed_files: list[str] = []
 
         category_names = {
-            "commands": "slash commands",
+            "skills": "skills",
             "rules": "standard rules",
             "pilot_plugin": "Pilot plugin files",
             "settings": "settings",
@@ -368,9 +368,9 @@ class ClaudeFilesStep(BaseStep):
         home_claude_dir = get_claude_config_dir()
         home_pilot_plugin_dir = home_claude_dir / "pilot"
 
-        if category == "commands":
-            rel_path = Path(file_path).relative_to("pilot/commands")
-            return home_claude_dir / "commands" / rel_path
+        if category == "skills":
+            rel_path = Path(file_path).relative_to("pilot/skills")
+            return home_claude_dir / "skills" / rel_path
         elif category == "rules":
             rel_path = Path(file_path).relative_to("pilot/rules")
             return home_claude_dir / "rules" / rel_path
@@ -395,27 +395,27 @@ class ClaudeFilesStep(BaseStep):
 
         self._merge_app_config()
         migrate_model_config()
-        self._cleanup_stale_rules(ctx)
+        self._cleanup_stale_managed_files(ctx)
         self._save_pilot_manifest(ctx)
 
     def _save_pilot_manifest(self, ctx: InstallContext) -> None:
-        """Save manifest of Pilot-managed files in commands/ and rules/.
+        """Save manifest of Pilot-managed files in skills/ and rules/.
 
-        Records filenames (relative to their directory) so the next update
+        Records filenames (relative to ~/.claude/) so the next update
         can selectively remove only Pilot's files, preserving user files.
         """
         home_claude_dir = get_claude_config_dir()
         installed = ctx.config.get("installed_files", [])
 
-        commands_dir = home_claude_dir / "commands"
+        skills_dir = home_claude_dir / "skills"
         rules_dir = home_claude_dir / "rules"
         managed_files: set[str] = set()
 
         for filepath_str in installed:
             filepath = Path(filepath_str)
             try:
-                if filepath.is_relative_to(commands_dir):
-                    managed_files.add("commands/" + str(filepath.relative_to(commands_dir)))
+                if filepath.is_relative_to(skills_dir):
+                    managed_files.add("skills/" + str(filepath.relative_to(skills_dir)))
                 elif filepath.is_relative_to(rules_dir):
                     managed_files.add("rules/" + str(filepath.relative_to(rules_dir)))
             except (ValueError, TypeError):
@@ -507,30 +507,26 @@ class ClaudeFilesStep(BaseStep):
         except (OSError, IOError):
             pass
 
-    def _cleanup_stale_rules(self, ctx: InstallContext) -> None:
-        """Remove stale Pilot-managed rule files not present in this installation.
+    def _cleanup_stale_managed_files(self, ctx: InstallContext) -> None:
+        """Remove stale Pilot-managed files not present in this installation.
 
         Only removes files that Pilot previously installed (tracked in manifest)
-        but are no longer part of the current installation. User-created rules
-        are never touched.
+        but are no longer part of the current installation. User-created files
+        are never touched. Handles rules/, skills/, and legacy commands/ entries.
         """
         home_claude_dir = get_claude_config_dir()
-        global_rules_dir = home_claude_dir / "rules"
-        if not global_rules_dir.exists():
-            return
-
         manifest_path = home_claude_dir / PILOT_MANIFEST_FILE
         previous_managed = load_manifest(manifest_path)
         installed = {Path(p).resolve() for p in ctx.config.get("installed_files", [])}
 
         for entry in previous_managed:
-            if not entry.startswith("rules/"):
-                continue
-            relative = entry[len("rules/") :]
-            file_path = global_rules_dir / relative
+            file_path = home_claude_dir / entry
             if file_path.exists() and file_path.resolve() not in installed:
                 try:
                     file_path.unlink()
+                    parent = file_path.parent
+                    if parent != home_claude_dir and parent.exists() and not any(parent.iterdir()):
+                        parent.rmdir()
                 except (OSError, IOError):
                     pass
 

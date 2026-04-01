@@ -473,8 +473,8 @@ class TestDirectoryClearing:
             global_rules = home_dir / ".claude" / "rules"
             assert (global_rules / "new-rule.md").exists()
 
-    def test_standard_commands_are_cleared(self):
-        """Global commands directory is cleared and replaced with new commands."""
+    def test_skills_installed_to_root_level(self):
+        """Skills from pilot/skills/ are installed to ~/.claude/skills/."""
         from installer.context import InstallContext
         from installer.steps.claude_files import ClaudeFilesStep
         from installer.ui import Console
@@ -484,16 +484,11 @@ class TestDirectoryClearing:
             home_dir = Path(tmpdir) / "home"
             home_dir.mkdir()
 
-            old_global_commands = home_dir / ".claude" / "commands"
-            old_global_commands.mkdir(parents=True)
-            (old_global_commands / "spec.md").write_text("old spec command")
-            (old_global_commands / "plan.md").write_text("old plan command")
-
             source_dir = Path(tmpdir) / "source"
             source_pilot = source_dir / "pilot"
-            source_commands = source_pilot / "commands"
-            source_commands.mkdir(parents=True)
-            (source_commands / "spec.md").write_text("new spec command")
+            spec_dir = source_pilot / "skills" / "spec"
+            spec_dir.mkdir(parents=True)
+            (spec_dir / "SKILL.md").write_text("new spec skill")
 
             dest_dir = Path(tmpdir) / "dest"
             dest_dir.mkdir()
@@ -508,9 +503,9 @@ class TestDirectoryClearing:
             with patch("installer.steps.claude_files.Path.home", return_value=home_dir):
                 step.run(ctx)
 
-            global_commands = home_dir / ".claude" / "commands"
-            assert (global_commands / "spec.md").exists()
-            assert (global_commands / "spec.md").read_text() == "new spec command"
+            global_skills = home_dir / ".claude" / "skills"
+            assert (global_skills / "spec" / "SKILL.md").exists()
+            assert (global_skills / "spec" / "SKILL.md").read_text() == "new spec skill"
 
     def test_pilot_plugin_folder_is_installed(self):
         """ClaudeFilesStep installs pilot plugin folder to ~/.claude/pilot/ (global)."""
@@ -991,15 +986,16 @@ class TestResolveRepoUrl:
 class TestSkillsDeployment:
     """Test that skills from pilot/skills/ are deployed to ~/.claude/pilot/skills/ via pilot_plugin."""
 
-    def test_skills_categorized_as_pilot_plugin(self):
-        """Files in pilot/skills/ are categorized as 'pilot_plugin' for plugin injection."""
+    def test_all_skills_categorized_as_skills(self):
+        """All files in pilot/skills/ are categorized as 'skills' for root-level installation."""
         from installer.steps.claude_files import _categorize_file
 
-        assert _categorize_file("pilot/skills/mcp-servers/skill.md") == "pilot_plugin"
-        assert _categorize_file("pilot/skills/skill-sharing/skill.md") == "pilot_plugin"
+        assert _categorize_file("pilot/skills/spec/SKILL.md") == "skills"
+        assert _categorize_file("pilot/skills/setup-rules/SKILL.md") == "skills"
+        assert _categorize_file("pilot/skills/mcp-servers/skill.md") == "skills"
 
-    def test_skills_deployed_to_plugin_path(self):
-        """Skills are installed to ~/.claude/pilot/skills/<name>/skill.md."""
+    def test_skills_deployed_to_root_skills_dir(self):
+        """Skills are installed to ~/.claude/skills/<name>/ (root level, not plugin)."""
         from installer.context import InstallContext
         from installer.steps.claude_files import ClaudeFilesStep
         from installer.ui import Console
@@ -1013,7 +1009,7 @@ class TestSkillsDeployment:
             source_pilot = source_dir / "pilot"
             skill_dir = source_pilot / "skills" / "mcp-servers"
             skill_dir.mkdir(parents=True)
-            (skill_dir / "skill.md").write_text("---\nname: mcp-servers\n---\n# MCP Servers")
+            (skill_dir / "SKILL.md").write_text("---\nname: mcp-servers\n---\n# MCP Servers")
 
             dest_dir = Path(tmpdir) / "dest"
             dest_dir.mkdir()
@@ -1028,14 +1024,18 @@ class TestSkillsDeployment:
             with patch("installer.steps.claude_files.Path.home", return_value=home_dir):
                 step.run(ctx)
 
-            expected_path = home_dir / ".claude" / "pilot" / "skills" / "mcp-servers" / "skill.md"
+            expected_path = home_dir / ".claude" / "skills" / "mcp-servers" / "SKILL.md"
             assert expected_path.exists(), f"Skill not at {expected_path}"
             assert "MCP Servers" in expected_path.read_text()
 
-    def test_stale_skills_cleared_on_reinstall(self):
-        """Plugin directory (including skills) is cleared on each install."""
+
+class TestCommandsToSkillsMigration:
+    """Test migration from legacy commands/ to skills/ format."""
+
+    def test_old_commands_cleaned_up_during_migration(self):
+        """Legacy commands in manifest are removed when upgrading to skills format."""
         from installer.context import InstallContext
-        from installer.steps.claude_files import ClaudeFilesStep
+        from installer.steps.claude_files import PILOT_MANIFEST_FILE, ClaudeFilesStep
         from installer.ui import Console
 
         step = ClaudeFilesStep()
@@ -1043,17 +1043,23 @@ class TestSkillsDeployment:
             home_dir = Path(tmpdir) / "home"
             home_dir.mkdir()
 
-            # Create a stale skill in the plugin directory
-            stale_skill = home_dir / ".claude" / "pilot" / "skills" / "old-skill"
-            stale_skill.mkdir(parents=True)
-            (stale_skill / "skill.md").write_text("old skill content")
+            # Old commands exist from previous install
+            old_commands = home_dir / ".claude" / "commands"
+            old_commands.mkdir(parents=True)
+            (old_commands / "spec.md").write_text("old spec command")
+            (old_commands / "setup-rules.md").write_text("old setup-rules command")
 
-            # Source has a different skill
+            # Old manifest tracks commands
+            manifest_path = home_dir / ".claude" / PILOT_MANIFEST_FILE
+            manifest_path.write_text(
+                json.dumps({"files": ["commands/spec.md", "commands/setup-rules.md"]}, indent=2)
+            )
+
+            # Source now has skill folders
             source_dir = Path(tmpdir) / "source"
-            source_pilot = source_dir / "pilot"
-            skill_dir = source_pilot / "skills" / "new-skill"
-            skill_dir.mkdir(parents=True)
-            (skill_dir / "skill.md").write_text("new skill")
+            spec_skill = source_dir / "pilot" / "skills" / "spec"
+            spec_skill.mkdir(parents=True)
+            (spec_skill / "SKILL.md").write_text("new spec skill")
 
             dest_dir = Path(tmpdir) / "dest"
             dest_dir.mkdir()
@@ -1068,7 +1074,113 @@ class TestSkillsDeployment:
             with patch("installer.steps.claude_files.Path.home", return_value=home_dir):
                 step.run(ctx)
 
-            # Old skill cleared (plugin dir is wiped on each install)
-            assert not stale_skill.exists(), "Stale skill should be removed"
+            # Old commands removed
+            assert not (old_commands / "spec.md").exists()
+            assert not (old_commands / "setup-rules.md").exists()
+
             # New skill installed
-            assert (home_dir / ".claude" / "pilot" / "skills" / "new-skill" / "skill.md").exists()
+            global_skills = home_dir / ".claude" / "skills"
+            assert (global_skills / "spec" / "SKILL.md").exists()
+            assert (global_skills / "spec" / "SKILL.md").read_text() == "new spec skill"
+
+            # Manifest updated with skills entries
+            manifest = json.loads(manifest_path.read_text())
+            assert "skills/spec/SKILL.md" in manifest["files"]
+            assert "commands/spec.md" not in manifest["files"]
+
+    def test_user_commands_preserved_during_migration(self):
+        """User-created commands not in manifest are preserved during migration."""
+        from installer.context import InstallContext
+        from installer.steps.claude_files import PILOT_MANIFEST_FILE, ClaudeFilesStep
+        from installer.ui import Console
+
+        step = ClaudeFilesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home_dir = Path(tmpdir) / "home"
+            home_dir.mkdir()
+
+            # Old Pilot command + user command
+            old_commands = home_dir / ".claude" / "commands"
+            old_commands.mkdir(parents=True)
+            (old_commands / "spec.md").write_text("old spec command")
+            (old_commands / "my-custom-cmd.md").write_text("user custom command")
+
+            # Manifest only tracks Pilot files
+            manifest_path = home_dir / ".claude" / PILOT_MANIFEST_FILE
+            manifest_path.write_text(json.dumps({"files": ["commands/spec.md"]}, indent=2))
+
+            source_dir = Path(tmpdir) / "source"
+            spec_skill = source_dir / "pilot" / "skills" / "spec"
+            spec_skill.mkdir(parents=True)
+            (spec_skill / "SKILL.md").write_text("new spec skill")
+
+            dest_dir = Path(tmpdir) / "dest"
+            dest_dir.mkdir()
+
+            ctx = InstallContext(
+                project_dir=dest_dir,
+                ui=Console(non_interactive=True),
+                local_mode=True,
+                local_repo_dir=source_dir,
+            )
+
+            with patch("installer.steps.claude_files.Path.home", return_value=home_dir):
+                step.run(ctx)
+
+            # User command preserved
+            assert (old_commands / "my-custom-cmd.md").exists()
+            assert (old_commands / "my-custom-cmd.md").read_text() == "user custom command"
+
+            # Pilot command removed
+            assert not (old_commands / "spec.md").exists()
+
+    def test_user_skills_not_seeded_into_manifest_on_legacy_upgrade(self):
+        """User-owned global skills are NOT seeded into manifest during legacy upgrade."""
+        from installer.context import InstallContext
+        from installer.steps.claude_files import PILOT_MANIFEST_FILE, ClaudeFilesStep
+        from installer.ui import Console
+
+        step = ClaudeFilesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home_dir = Path(tmpdir) / "home"
+            home_dir.mkdir()
+
+            # Pre-existing user skill + Pilot skill (no manifest = legacy)
+            skills_dir = home_dir / ".claude" / "skills"
+            user_skill = skills_dir / "my-custom-skill"
+            user_skill.mkdir(parents=True)
+            (user_skill / "SKILL.md").write_text("user custom skill")
+
+            pilot_skill = skills_dir / "spec"
+            pilot_skill.mkdir(parents=True)
+            (pilot_skill / "SKILL.md").write_text("old pilot spec skill")
+
+            manifest_path = home_dir / ".claude" / PILOT_MANIFEST_FILE
+            assert not manifest_path.exists()
+
+            # Source has new spec skill
+            source_dir = Path(tmpdir) / "source"
+            spec_src = source_dir / "pilot" / "skills" / "spec"
+            spec_src.mkdir(parents=True)
+            (spec_src / "SKILL.md").write_text("new spec skill")
+
+            dest_dir = Path(tmpdir) / "dest"
+            dest_dir.mkdir()
+
+            ctx = InstallContext(
+                project_dir=dest_dir,
+                ui=Console(non_interactive=True),
+                local_mode=True,
+                local_repo_dir=source_dir,
+            )
+
+            with patch("installer.steps.claude_files.Path.home", return_value=home_dir):
+                step.run(ctx)
+
+            # User skill preserved — not seeded, not deleted
+            assert (user_skill / "SKILL.md").exists()
+            assert (user_skill / "SKILL.md").read_text() == "user custom skill"
+
+            # Manifest does NOT contain user skill
+            manifest = json.loads(manifest_path.read_text())
+            assert not any("my-custom-skill" in f for f in manifest["files"])

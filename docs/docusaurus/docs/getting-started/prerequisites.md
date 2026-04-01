@@ -8,9 +8,9 @@ description: What you need before installing Pilot Shell
 
 What you need before installing Pilot Shell.
 
-## Claude Code (Auto-Installed)
+## Claude Code
 
-Pilot Shell installs **on top of Claude Code**. If Claude Code is not already installed, the Pilot Shell installer will install it automatically via the [native installer](https://docs.anthropic.com/en/docs/claude-code/setup).
+Install [Claude Code](https://code.claude.com/docs/en/quickstart) using the **native installer** before setting up Pilot Shell. If you have the `npm` or `brew` version installed, uninstall it first. If no Claude Code installation is detected, the Pilot installer will attempt to set it up for you.
 
 ## Claude Subscription
 
