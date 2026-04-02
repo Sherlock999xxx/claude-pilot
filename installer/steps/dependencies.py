@@ -516,10 +516,10 @@ def install_playwright_cli() -> bool:
 
     try:
         result = subprocess.run(
-            ["playwright-cli", "install-browser"],
+            ["playwright-cli", "install-browser", "chromium"],
             capture_output=True,
             text=True,
-            timeout=300,
+            timeout=600,
         )
         return result.returncode == 0
     except Exception:
