@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.11.1] - 2026-04-02
+
+### Bug Fixes
+
+- Add playwright-cli as 3-tier browser tool, optimize viewer bundle, improve installer UX
+
 ## [7.11.0] - 2026-04-01
 
 ### Features
