@@ -2,6 +2,17 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.11.3] - 2026-04-06
+
+### Bug Fixes
+
+- Replace isomorphic-dompurify with dompurify to fix CI ESM incompatibility
+- Whitelist web-search-agent in tool_redirect hook for /prd deep research
+
+### Miscellaneous
+
+- Add Homebrew to Linux Dev Container Setup
+
 ## [7.11.2] - 2026-04-02
 
 ### Bug Fixes
