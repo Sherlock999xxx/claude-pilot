@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.11.4] - 2026-04-07
+
+### Bug Fixes
+
+- Console UI overhaul — dashboard sessions card, sidebar worker status, motion system, skeleton loaders
+
 ## [7.11.3] - 2026-04-06
 
 ### Bug Fixes
