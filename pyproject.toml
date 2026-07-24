@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=83.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -16,7 +16,7 @@ dependencies = [
     "platformdirs>=4.3.6",
     "cryptography>=46.0.6",
     "Cython>=3.0.0",
-    "setuptools>=61.0",
+    "setuptools>=83.0.0",
     "PyYAML>=6.0",
 ]
 
